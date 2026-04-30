@@ -1,6 +1,9 @@
 import { cac } from 'cac'
 import pc from 'picocolors'
 
+import { getAuthStatus } from './lib/auth-status.js'
+import { renderAuthStatus } from './lib/output.js'
+
 const cli = cac('threads')
 
 const printPlanned = (name: string, note?: string) => {
@@ -15,7 +18,7 @@ const printDoctor = () => {
 }
 
 const args = process.argv.slice(2)
-const route = () => {
+const route = async () => {
   if (args.length === 0) return false
 
   if (args[0] === 'doctor') {
@@ -29,7 +32,9 @@ const route = () => {
   }
 
   if (args[0] === 'auth' && args[1] === 'status') {
-    printPlanned('auth status')
+    const status = await getAuthStatus()
+    console.log(renderAuthStatus(status))
+    process.exitCode = status.ok ? 0 : 1
     return true
   }
 
@@ -80,6 +85,6 @@ cli.command('post delete <id>', 'delete an owned Threads post')
 cli.help()
 cli.version('0.1.0')
 
-if (!route()) {
+if (!(await route())) {
   cli.parse()
 }
