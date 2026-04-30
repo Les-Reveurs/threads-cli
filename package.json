@@ -1,0 +1,34 @@
+{
+  "name": "threads-cli",
+  "version": "0.1.0",
+  "description": "CLI toolkit for working with Threads from the terminal",
+  "type": "module",
+  "bin": {
+    "threads": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsup src/cli.ts --format esm --dts --clean",
+    "dev": "tsx src/cli.ts --help",
+    "start": "node dist/cli.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "threads",
+    "cli",
+    "meta",
+    "terminal"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cac": "^6.7.14",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
