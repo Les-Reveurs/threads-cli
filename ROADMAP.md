@@ -5,15 +5,20 @@
 - define architecture
 - establish CLI skeleton
 
-## Phase 1 — contract design
-- define command namespace
-- choose transport/auth strategy
+## Phase 1 — official API contract design
+- verify public Threads API capabilities
+- define stable command namespace around supported endpoints
 - add structured config and profile loading
+- define OAuth flow and token persistence strategy
 
 ## Phase 2 — MVP
+- `threads auth login`
 - `threads auth status`
+- `threads me`
 - `threads post create`
-- `threads thread create`
+- `threads post delete <id>`
+- `threads posts list`
+- `threads user <username|id>`
 - `threads doctor`
 
 ## Phase 3 — operator ergonomics
@@ -21,9 +26,15 @@
 - draft files/templates
 - retries and clear error mapping
 - CI-friendly non-interactive auth flow
+- better env/config diagnostics
 
-## Phase 4 — advanced workflows
-- replies
-- media support
-- scheduling/export/import
-- account and post inspection
+## Phase 4 — official API expansion
+- replies management
+- mentions
+- keyword/topic search
+- insights
+- webhook tooling
+
+## Phase 5 — optional experimental adapters
+- evaluate unofficial/browser-backed adapter only if official API leaves important gaps
+- keep experimental mode opt-in and clearly separated from stable official flows
