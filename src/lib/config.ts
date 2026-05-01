@@ -63,3 +63,16 @@ export const saveConfig = async (config: ThreadsCliConfig): Promise<void> => {
   await mkdir(configDir, { recursive: true })
   await writeFile(configFile, JSON.stringify(config, null, 2) + '\n', 'utf8')
 }
+
+export const updateActiveProfile = async (
+  updater: (profile: ThreadsProfileConfig, config: ThreadsCliConfig) => ThreadsProfileConfig,
+): Promise<ThreadsCliConfig> => {
+  const config = await loadConfig()
+  const profileName = config.activeProfile || 'default'
+  const currentProfile = config.profiles[profileName] || {}
+
+  config.profiles[profileName] = updater(currentProfile, config)
+  await saveConfig(config)
+
+  return config
+}

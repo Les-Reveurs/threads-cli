@@ -1,9 +1,10 @@
 import { cac } from 'cac'
 import pc from 'picocolors'
 
+import { logoutAuth } from './lib/auth-logout.js'
 import { getAuthStatus } from './lib/auth-status.js'
 import { getDoctorReport } from './lib/doctor.js'
-import { renderAuthStatus, renderDoctorReport } from './lib/output.js'
+import { renderAuthLogout, renderAuthStatus, renderDoctorReport } from './lib/output.js'
 
 const cli = cac('threads')
 
@@ -40,7 +41,9 @@ const route = async () => {
   }
 
   if (args[0] === 'auth' && args[1] === 'logout') {
-    printPlanned('auth logout')
+    const result = await logoutAuth()
+    console.log(renderAuthLogout(result))
+    process.exitCode = 0
     return true
   }
 
