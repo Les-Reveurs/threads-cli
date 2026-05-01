@@ -1,6 +1,7 @@
 import pc from 'picocolors'
 
 import type { AuthStatus } from './auth-status.js'
+import type { AuthLogoutResult } from './auth-logout.js'
 import type { DoctorReport } from './doctor.js'
 
 export const renderAuthStatus = (status: AuthStatus): string => {
@@ -21,4 +22,12 @@ export const renderDoctorReport = (report: DoctorReport): string => {
   const iconFor = (status: 'pass' | 'warn') => (status === 'pass' ? '✓' : '!')
 
   return [headline, ...report.checks.map((check) => `${iconFor(check.status)} ${check.message}`)].join('\n')
+}
+
+export const renderAuthLogout = (result: AuthLogoutResult): string => {
+  return [
+    pc.green('auth logout: done'),
+    `profile: ${result.profile}`,
+    `cleared_tokens: ${result.cleared ? 'yes' : 'no'}`,
+  ].join('\n')
 }
