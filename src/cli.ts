@@ -2,7 +2,8 @@ import { cac } from 'cac'
 import pc from 'picocolors'
 
 import { getAuthStatus } from './lib/auth-status.js'
-import { renderAuthStatus } from './lib/output.js'
+import { getDoctorReport } from './lib/doctor.js'
+import { renderAuthStatus, renderDoctorReport } from './lib/output.js'
 
 const cli = cac('threads')
 
@@ -11,10 +12,10 @@ const printPlanned = (name: string, note?: string) => {
   console.log(note ?? 'This command is scaffolded but not implemented yet.')
 }
 
-const printDoctor = () => {
-  console.log(pc.green('threads-cli is alive 🧵'))
-  console.log('Mode: official Threads API first')
-  console.log('Scaffolded commands: auth, me, user, posts, post, doctor')
+const printDoctor = async () => {
+  const report = await getDoctorReport()
+  console.log(renderDoctorReport(report))
+  process.exitCode = report.ok ? 0 : 1
 }
 
 const args = process.argv.slice(2)
@@ -22,7 +23,7 @@ const route = async () => {
   if (args.length === 0) return false
 
   if (args[0] === 'doctor') {
-    printDoctor()
+    await printDoctor()
     return true
   }
 
