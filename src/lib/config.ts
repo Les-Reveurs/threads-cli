@@ -6,6 +6,8 @@ export type ThreadsProfileConfig = {
   clientId?: string
   clientSecret?: string
   redirectUri?: string
+  scopes?: string[]
+  authState?: string
   accessToken?: string
   accessTokenExpiresAt?: string
   refreshToken?: string
@@ -64,15 +66,3 @@ export const saveConfig = async (config: ThreadsCliConfig): Promise<void> => {
   await writeFile(configFile, JSON.stringify(config, null, 2) + '\n', 'utf8')
 }
 
-export const updateActiveProfile = async (
-  updater: (profile: ThreadsProfileConfig, config: ThreadsCliConfig) => ThreadsProfileConfig,
-): Promise<ThreadsCliConfig> => {
-  const config = await loadConfig()
-  const profileName = config.activeProfile || 'default'
-  const currentProfile = config.profiles[profileName] || {}
-
-  config.profiles[profileName] = updater(currentProfile, config)
-  await saveConfig(config)
-
-  return config
-}

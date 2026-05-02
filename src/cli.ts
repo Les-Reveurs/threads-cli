@@ -1,10 +1,11 @@
 import { cac } from 'cac'
 import pc from 'picocolors'
 
+import { startAuthLogin } from './lib/auth-login.js'
 import { logoutAuth } from './lib/auth-logout.js'
 import { getAuthStatus } from './lib/auth-status.js'
 import { getDoctorReport } from './lib/doctor.js'
-import { renderAuthLogout, renderAuthStatus, renderDoctorReport } from './lib/output.js'
+import { renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport } from './lib/output.js'
 
 const cli = cac('threads')
 
@@ -20,6 +21,14 @@ const printDoctor = async () => {
 }
 
 const args = process.argv.slice(2)
+
+const getFlagValue = (name: string): string | undefined => {
+  const index = args.indexOf(name)
+  if (index === -1) return undefined
+
+  return args[index + 1]?.startsWith('--') ? undefined : args[index + 1]
+}
+
 const route = async () => {
   if (args.length === 0) return false
 
@@ -29,7 +38,22 @@ const route = async () => {
   }
 
   if (args[0] === 'auth' && args[1] === 'login') {
-    printPlanned('auth login', 'OAuth flow will be implemented against the official Threads API.')
+    try {
+      const result = await startAuthLogin({
+        profile: getFlagValue('--profile'),
+        clientId: getFlagValue('--client-id'),
+        clientSecret: getFlagValue('--client-secret'),
+        redirectUri: getFlagValue('--redirect-uri'),
+        scopes: getFlagValue('--scopes') ? [getFlagValue('--scopes') as string] : undefined,
+      })
+
+      console.log(renderAuthLogin(result))
+      process.exitCode = 0
+    } catch (error) {
+      console.error((error as Error).message)
+      process.exitCode = 1
+    }
+
     return true
   }
 
