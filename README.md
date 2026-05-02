@@ -56,3 +56,9 @@ node dist/cli.js help
 ## Status
 
 Bootstrap is done. The repo now assumes official API-first design and the next milestone is implementing auth/config/client layers behind the command contracts.
+
+Current implemented pieces:
+- `threads auth status`
+- `threads auth logout`
+- `threads auth login` scaffold that persists profile OAuth inputs and prints an authorization URL/state
+- `threads doctor`

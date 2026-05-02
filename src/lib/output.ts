@@ -1,6 +1,7 @@
 import pc from 'picocolors'
 
 import type { AuthStatus } from './auth-status.js'
+import type { AuthLoginResult } from './auth-login.js'
 import type { AuthLogoutResult } from './auth-logout.js'
 import type { DoctorReport } from './doctor.js'
 
@@ -29,5 +30,16 @@ export const renderAuthLogout = (result: AuthLogoutResult): string => {
     pc.green('auth logout: done'),
     `profile: ${result.profile}`,
     `cleared_tokens: ${result.cleared ? 'yes' : 'no'}`,
+  ].join('\n')
+}
+
+export const renderAuthLogin = (result: AuthLoginResult): string => {
+  return [
+    pc.green('auth login: ready'),
+    `profile: ${result.profile}`,
+    `redirect_uri: ${result.redirectUri}`,
+    `scopes: ${result.scopes.join(',')}`,
+    `state: ${result.state}`,
+    `authorize_url: ${result.authorizationUrl}`,
   ].join('\n')
 }
