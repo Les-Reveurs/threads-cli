@@ -65,4 +65,7 @@ Current implemented pieces:
 - `threads auth logout`
 - `threads me`
 - `threads user <username-or-id>`
+- `threads posts list`
+- `threads post delete <id>`
+- `threads post create --text ...` for text posts via the official publish flow
 - `threads doctor`
