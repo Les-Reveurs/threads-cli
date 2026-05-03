@@ -28,6 +28,7 @@ Unofficial adapters can exist later as an optional experimental layer, not as th
 
 ```bash
 threads auth login
+threads auth exchange --code <authorization-code>
 threads auth status
 threads me
 threads post create --text "hello world"
@@ -58,7 +59,10 @@ node dist/cli.js help
 Bootstrap is done. The repo now assumes official API-first design and the next milestone is implementing auth/config/client layers behind the command contracts.
 
 Current implemented pieces:
+- `threads auth login` scaffold that persists profile OAuth inputs and prints an authorization URL/state
+- `threads auth exchange --code ...` to store an access token from the OAuth callback
 - `threads auth status`
 - `threads auth logout`
-- `threads auth login` scaffold that persists profile OAuth inputs and prints an authorization URL/state
+- `threads me`
+- `threads user <username-or-id>`
 - `threads doctor`

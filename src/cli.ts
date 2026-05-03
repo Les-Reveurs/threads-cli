@@ -2,10 +2,12 @@ import { cac } from 'cac'
 import pc from 'picocolors'
 
 import { startAuthLogin } from './lib/auth-login.js'
+import { completeAuthExchange } from './lib/auth-exchange.js'
 import { logoutAuth } from './lib/auth-logout.js'
 import { getAuthStatus } from './lib/auth-status.js'
 import { getDoctorReport } from './lib/doctor.js'
-import { renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport } from './lib/output.js'
+import { getCurrentProfile, getUserProfile } from './lib/me.js'
+import { renderAuthExchange, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderProfile } from './lib/output.js'
 
 const cli = cac('threads')
 
@@ -57,6 +59,23 @@ const route = async () => {
     return true
   }
 
+  if (args[0] === 'auth' && args[1] === 'exchange') {
+    try {
+      const result = await completeAuthExchange({
+        profile: getFlagValue('--profile'),
+        code: getFlagValue('--code'),
+      })
+
+      console.log(renderAuthExchange(result))
+      process.exitCode = 0
+    } catch (error) {
+      console.error((error as Error).message)
+      process.exitCode = 1
+    }
+
+    return true
+  }
+
   if (args[0] === 'auth' && args[1] === 'status') {
     const status = await getAuthStatus()
     console.log(renderAuthStatus(status))
@@ -72,12 +91,28 @@ const route = async () => {
   }
 
   if (args[0] === 'me') {
-    printPlanned('me')
+    try {
+      const profile = await getCurrentProfile()
+      console.log(renderProfile('me: ok', profile))
+      process.exitCode = 0
+    } catch (error) {
+      console.error((error as Error).message)
+      process.exitCode = 1
+    }
+
     return true
   }
 
   if (args[0] === 'user' && args[1]) {
-    printPlanned('user', `Lookup target: ${args[1]}`)
+    try {
+      const profile = await getUserProfile(args[1])
+      console.log(renderProfile('user: ok', profile))
+      process.exitCode = 0
+    } catch (error) {
+      console.error((error as Error).message)
+      process.exitCode = 1
+    }
+
     return true
   }
 
@@ -102,6 +137,7 @@ const route = async () => {
 
 cli.command('doctor', 'check local environment and configuration')
 cli.command('auth login', 'start OAuth login flow')
+cli.command('auth exchange', 'exchange OAuth code for an access token')
 cli.command('auth status', 'show local auth status')
 cli.command('auth logout', 'clear locally stored auth data')
 cli.command('me', 'show current authenticated profile')

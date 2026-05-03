@@ -12,14 +12,15 @@
 - define OAuth flow and token persistence strategy
 
 ## Phase 2 — MVP
-- `threads auth login`
-- `threads auth status`
-- `threads me`
-- `threads post create`
-- `threads post delete <id>`
-- `threads posts list`
-- `threads user <username|id>`
-- `threads doctor`
+- [x] `threads auth login`
+- [x] `threads auth status`
+- [x] `threads me`
+- [ ] `threads post create`
+- [ ] `threads post delete <id>`
+- [ ] `threads posts list`
+- [x] `threads user <username|id>`
+- [x] `threads doctor`
+- [x] `threads auth exchange --code <code>` (bridge from OAuth redirect to usable token)
 
 ## Phase 3 — operator ergonomics
 - `--json` output

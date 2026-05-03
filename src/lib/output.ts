@@ -4,6 +4,8 @@ import type { AuthStatus } from './auth-status.js'
 import type { AuthLoginResult } from './auth-login.js'
 import type { AuthLogoutResult } from './auth-logout.js'
 import type { DoctorReport } from './doctor.js'
+import type { AuthExchangeResult } from './auth-exchange.js'
+import type { ThreadsProfile } from './me.js'
 
 export const renderAuthStatus = (status: AuthStatus): string => {
   const headline = status.ok ? pc.green('auth status: ready') : pc.yellow(`auth status: ${status.code}`)
@@ -41,5 +43,24 @@ export const renderAuthLogin = (result: AuthLoginResult): string => {
     `scopes: ${result.scopes.join(',')}`,
     `state: ${result.state}`,
     `authorize_url: ${result.authorizationUrl}`,
+  ].join('\n')
+}
+
+export const renderAuthExchange = (result: AuthExchangeResult): string => {
+  return [
+    pc.green('auth exchange: done'),
+    `profile: ${result.profile}`,
+    `user_id: ${result.userId ?? '-'}`,
+  ].join('\n')
+}
+
+export const renderProfile = (headline: string, profile: ThreadsProfile): string => {
+  return [
+    pc.green(headline),
+    `id: ${profile.id}`,
+    `username: ${profile.username ?? '-'}`,
+    `name: ${profile.name ?? '-'}`,
+    `bio: ${profile.threads_biography ?? '-'}`,
+    `avatar: ${profile.threads_profile_picture_url ?? '-'}`,
   ].join('\n')
 }
