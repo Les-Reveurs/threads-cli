@@ -3,6 +3,17 @@ import { loadConfig, type ThreadsProfileConfig } from './config.js'
 const API_BASE_URL = 'https://graph.threads.net/v1.0'
 const OAUTH_BASE_URL = 'https://graph.threads.net/oauth'
 
+let fakeApiQueue: Array<unknown> | undefined
+
+const shiftFakeApiPayload = (): unknown => {
+  if (!fakeApiQueue) {
+    const fakeQueue = process.env.THREADS_CLI_FAKE_API_QUEUE_JSON
+    fakeApiQueue = fakeQueue ? JSON.parse(fakeQueue) as Array<unknown> : []
+  }
+
+  return fakeApiQueue.shift()
+}
+
 export class ThreadsCliError extends Error {
   code: string
 
@@ -55,6 +66,11 @@ const buildUrl = (path: string, query?: Record<string, string | undefined>): str
 }
 
 export const fetchThreadsApi = async <T>(path: string, query?: Record<string, string | undefined>): Promise<T> => {
+  const queuedPayload = shiftFakeApiPayload()
+  if (queuedPayload !== undefined) {
+    return queuedPayload as T
+  }
+
   const fakePayload = process.env.THREADS_CLI_FAKE_API_JSON
   if (fakePayload) {
     return JSON.parse(fakePayload) as T
@@ -65,6 +81,41 @@ export const fetchThreadsApi = async <T>(path: string, query?: Record<string, st
   const url = buildUrl(path, { ...query, access_token: accessToken })
 
   const response = await fetch(url)
+  const text = await response.text()
+  const payload = text ? JSON.parse(text) : null
+
+  if (!response.ok) {
+    throw new ThreadsCliError(
+      'api_error',
+      payload?.error?.message || `Threads API request failed with status ${response.status}`,
+    )
+  }
+
+  return payload as T
+}
+
+export const mutateThreadsApi = async <T>(path: string, options: {
+  method: 'POST' | 'DELETE'
+  query?: Record<string, string | undefined>
+}): Promise<T> => {
+  const queuedPayload = shiftFakeApiPayload()
+  if (queuedPayload !== undefined) {
+    return queuedPayload as T
+  }
+
+  const fakePayload = process.env.THREADS_CLI_FAKE_API_JSON
+  if (fakePayload) {
+    return JSON.parse(fakePayload) as T
+  }
+
+  const { profile } = await requireAccessTokenProfile()
+  const accessToken = ensureValue(profile.accessToken, 'access token missing', 'missing_access_token')
+  const url = buildUrl(path, { ...options.query, access_token: accessToken })
+
+  const response = await fetch(url, {
+    method: options.method,
+  })
+
   const text = await response.text()
   const payload = text ? JSON.parse(text) : null
 

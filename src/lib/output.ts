@@ -6,6 +6,7 @@ import type { AuthLogoutResult } from './auth-logout.js'
 import type { DoctorReport } from './doctor.js'
 import type { AuthExchangeResult } from './auth-exchange.js'
 import type { ThreadsProfile } from './me.js'
+import type { ThreadsPost, ThreadsPostsListResult } from './posts.js'
 
 export const renderAuthStatus = (status: AuthStatus): string => {
   const headline = status.ok ? pc.green('auth status: ready') : pc.yellow(`auth status: ${status.code}`)
@@ -63,4 +64,30 @@ export const renderProfile = (headline: string, profile: ThreadsProfile): string
     `bio: ${profile.threads_biography ?? '-'}`,
     `avatar: ${profile.threads_profile_picture_url ?? '-'}`,
   ].join('\n')
+}
+
+const renderPostLine = (post: ThreadsPost): string => {
+  return [
+    `- id: ${post.id}`,
+    `  text: ${post.text ?? '-'}`,
+    `  media_type: ${post.media_type ?? '-'}`,
+    `  permalink: ${post.permalink ?? '-'}`,
+    `  timestamp: ${post.timestamp ?? '-'}`,
+  ].join('\n')
+}
+
+export const renderPostsList = (result: ThreadsPostsListResult): string => {
+  return [
+    pc.green(`posts list: ${result.data.length} item(s)`),
+    ...result.data.map(renderPostLine),
+    `next_after: ${result.paging?.cursors?.after ?? '-'}`,
+  ].join('\n')
+}
+
+export const renderPostDeleted = (id: string): string => {
+  return [pc.green('post delete: done'), `id: ${id}`].join('\n')
+}
+
+export const renderPostCreated = (id: string, creationId: string): string => {
+  return [pc.green('post create: done'), `id: ${id}`, `creation_id: ${creationId}`].join('\n')
 }

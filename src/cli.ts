@@ -7,13 +7,17 @@ import { logoutAuth } from './lib/auth-logout.js'
 import { getAuthStatus } from './lib/auth-status.js'
 import { getDoctorReport } from './lib/doctor.js'
 import { getCurrentProfile, getUserProfile } from './lib/me.js'
-import { renderAuthExchange, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderProfile } from './lib/output.js'
+import { createTextPost, deletePost, listPosts } from './lib/posts.js'
+import { renderAuthExchange, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile } from './lib/output.js'
 
 const cli = cac('threads')
 
-const printPlanned = (name: string, note?: string) => {
-  console.log(pc.cyan(`planned command: ${name}`))
-  console.log(note ?? 'This command is scaffolded but not implemented yet.')
+const parseIntegerFlag = (name: string): number | undefined => {
+  const value = getFlagValue(name)
+  if (!value) return undefined
+
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) ? parsed : undefined
 }
 
 const printDoctor = async () => {
@@ -117,18 +121,46 @@ const route = async () => {
   }
 
   if (args[0] === 'posts' && args[1] === 'list') {
-    printPlanned('posts list')
+    try {
+      const posts = await listPosts(parseIntegerFlag('--limit'), getFlagValue('--after'))
+      console.log(renderPostsList(posts))
+      process.exitCode = 0
+    } catch (error) {
+      console.error((error as Error).message)
+      process.exitCode = 1
+    }
+
     return true
   }
 
   if (args[0] === 'post' && args[1] === 'create') {
-    const text = args.slice(2).join(' ').trim()
-    printPlanned('post create', text ? `Draft text: ${text}` : undefined)
+    try {
+      const text = getFlagValue('--text') || args.slice(2).join(' ').trim()
+      if (!text) {
+        throw new Error('post text is required (pass [text] or --text)')
+      }
+
+      const created = await createTextPost(text)
+      console.log(renderPostCreated(created.id, created.creationId))
+      process.exitCode = 0
+    } catch (error) {
+      console.error((error as Error).message)
+      process.exitCode = 1
+    }
+
     return true
   }
 
   if (args[0] === 'post' && args[1] === 'delete' && args[2]) {
-    printPlanned('post delete', `Target post id: ${args[2]}`)
+    try {
+      const deleted = await deletePost(args[2])
+      console.log(renderPostDeleted(deleted.id))
+      process.exitCode = 0
+    } catch (error) {
+      console.error((error as Error).message)
+      process.exitCode = 1
+    }
+
     return true
   }
 

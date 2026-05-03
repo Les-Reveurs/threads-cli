@@ -15,9 +15,9 @@
 - [x] `threads auth login`
 - [x] `threads auth status`
 - [x] `threads me`
-- [ ] `threads post create`
-- [ ] `threads post delete <id>`
-- [ ] `threads posts list`
+- [x] `threads post create` (text-only MVP)
+- [x] `threads post delete <id>`
+- [x] `threads posts list`
 - [x] `threads user <username|id>`
 - [x] `threads doctor`
 - [x] `threads auth exchange --code <code>` (bridge from OAuth redirect to usable token)
