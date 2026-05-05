@@ -44,6 +44,7 @@ threads doctor
 npm install
 npm run build
 node dist/cli.js doctor
+node dist/cli.js auth status --json
 node dist/cli.js help
 ```
 
@@ -69,3 +70,4 @@ Current implemented pieces:
 - `threads post delete <id>`
 - `threads post create --text ...` for text posts via the official publish flow
 - `threads doctor`
+- `--json` output for the current stable command surface

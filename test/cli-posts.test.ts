@@ -76,6 +76,31 @@ test('post delete prints success', async () => {
   })
 })
 
+test('posts list supports --json output', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'posts', 'list', '--json'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { id: 'user-1', username: 'bender' },
+          { data: [{ id: 'post-1', text: 'hello world' }], paging: { cursors: { after: 'cursor-2' } } },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.deepEqual(JSON.parse(result.stdout), {
+      data: [{ id: 'post-1', text: 'hello world' }],
+      paging: { cursors: { after: 'cursor-2' } },
+    })
+  })
+})
+
 test('post create prints success for text posts', async () => {
   await withTempConfigDir(async (configDir) => {
     await writeReadyConfig(configDir)
