@@ -48,6 +48,36 @@ test('me prints current profile from API', async () => {
   })
 })
 
+test('me supports --json output', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeFile(
+      path.join(configDir, 'config.json'),
+      JSON.stringify({
+        activeProfile: 'default',
+        profiles: {
+          default: {
+            clientId: 'client-123',
+            accessToken: 'token-abc',
+          },
+        },
+      }, null, 2),
+    )
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'me', '--json'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_JSON: JSON.stringify({ id: '1', username: 'bender', name: 'Bender' }),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.deepEqual(JSON.parse(result.stdout), { id: '1', username: 'bender', name: 'Bender' })
+  })
+})
+
 test('user prints profile by id or username from API', async () => {
   await withTempConfigDir(async (configDir) => {
     await writeFile(

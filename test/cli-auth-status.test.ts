@@ -59,3 +59,38 @@ test('auth status exits zero when token is configured', async () => {
     assert.match(result.stdout, /access_token: set/)
   })
 })
+
+test('auth status supports --json output', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeFile(
+      path.join(configDir, 'config.json'),
+      JSON.stringify({
+        activeProfile: 'default',
+        profiles: {
+          default: {
+            clientId: 'client-123',
+            accessToken: 'token-abc',
+            accessTokenExpiresAt: '2030-01-01T00:00:00.000Z',
+          },
+        },
+      }, null, 2),
+    )
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'auth', 'status', '--json'], {
+      cwd: repoRoot,
+      env: { ...process.env, THREADS_CLI_CONFIG_DIR: configDir },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.deepEqual(JSON.parse(result.stdout), {
+      ok: true,
+      code: 'ready',
+      profile: 'default',
+      hasClientId: true,
+      hasAccessToken: true,
+      expiresAt: '2030-01-01T00:00:00.000Z',
+      isExpired: false,
+    })
+  })
+})

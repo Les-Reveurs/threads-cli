@@ -23,7 +23,7 @@
 - [x] `threads auth exchange --code <code>` (bridge from OAuth redirect to usable token)
 
 ## Phase 3 — operator ergonomics
-- `--json` output
+- [x] `--json` output
 - draft files/templates
 - retries and clear error mapping
 - CI-friendly non-interactive auth flow
