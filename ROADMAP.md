@@ -26,7 +26,7 @@
 - [x] `--json` output
 - draft files/templates
 - retries and clear error mapping
-- CI-friendly non-interactive auth flow
+- [x] CI-friendly non-interactive auth flow
 - better env/config diagnostics
 
 ## Phase 4 — official API expansion

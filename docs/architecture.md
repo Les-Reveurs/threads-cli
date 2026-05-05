@@ -49,6 +49,7 @@ A small internal map describing which commands are stable, beta, or unsupported 
 
 ### Stable MVP targets
 - `threads auth login`
+- `threads auth import`
 - `threads auth status`
 - `threads me`
 - `threads post create`

@@ -5,6 +5,7 @@ import type { AuthLoginResult } from './auth-login.js'
 import type { AuthLogoutResult } from './auth-logout.js'
 import type { DoctorReport } from './doctor.js'
 import type { AuthExchangeResult } from './auth-exchange.js'
+import type { AuthImportResult } from './auth-import.js'
 import type { ThreadsProfile } from './me.js'
 import type { ThreadsPost, ThreadsPostsListResult } from './posts.js'
 
@@ -52,6 +53,16 @@ export const renderAuthExchange = (result: AuthExchangeResult): string => {
     pc.green('auth exchange: done'),
     `profile: ${result.profile}`,
     `user_id: ${result.userId ?? '-'}`,
+  ].join('\n')
+}
+
+export const renderAuthImport = (result: AuthImportResult): string => {
+  return [
+    pc.green('auth import: done'),
+    `profile: ${result.profile}`,
+    `client_id: ${result.savedProfile.clientId ? 'set' : 'missing'}`,
+    `access_token: set`,
+    `expires_at: ${result.savedProfile.accessTokenExpiresAt ?? '-'}`,
   ].join('\n')
 }
 

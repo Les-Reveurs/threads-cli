@@ -5,9 +5,10 @@ import { completeAuthExchange } from './lib/auth-exchange.js'
 import { logoutAuth } from './lib/auth-logout.js'
 import { getAuthStatus } from './lib/auth-status.js'
 import { getDoctorReport } from './lib/doctor.js'
+import { importAuthToken } from './lib/auth-import.js'
 import { getCurrentProfile, getUserProfile } from './lib/me.js'
 import { createTextPost, deletePost, listPosts } from './lib/posts.js'
-import { renderAuthExchange, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile } from './lib/output.js'
+import { renderAuthExchange, renderAuthImport, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile } from './lib/output.js'
 import { ThreadsCliError } from './lib/threads-api.js'
 
 const cli = cac('threads')
@@ -107,6 +108,29 @@ const route = async () => {
     return true
   }
 
+  if (args[0] === 'auth' && args[1] === 'import') {
+    try {
+      const result = await importAuthToken({
+        profile: getFlagValue('--profile'),
+        accessToken: getFlagValue('--access-token'),
+        refreshToken: getFlagValue('--refresh-token'),
+        expiresAt: getFlagValue('--expires-at'),
+        clientId: getFlagValue('--client-id'),
+        clientSecret: getFlagValue('--client-secret'),
+        redirectUri: getFlagValue('--redirect-uri'),
+        scopes: getFlagValue('--scopes') ? [getFlagValue('--scopes') as string] : undefined,
+      })
+
+      printOutput(result, renderAuthImport)
+      process.exitCode = 0
+    } catch (error) {
+      printError(error)
+      process.exitCode = 1
+    }
+
+    return true
+  }
+
   if (args[0] === 'auth' && args[1] === 'logout') {
     const result = await logoutAuth()
     printOutput(result, renderAuthLogout)
@@ -191,6 +215,7 @@ cli.command('doctor', 'check local environment and configuration')
 cli.command('auth login', 'start OAuth login flow')
 cli.command('auth exchange', 'exchange OAuth code for an access token')
 cli.command('auth status', 'show local auth status')
+cli.command('auth import', 'store auth tokens/config for non-interactive CI or local automation')
 cli.command('auth logout', 'clear locally stored auth data')
 cli.command('me', 'show current authenticated profile')
 cli.command('user <usernameOrId>', 'show public profile info')

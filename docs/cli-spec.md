@@ -14,6 +14,7 @@ threads
 ├── auth
 │   ├── login
 │   ├── status
+│   ├── import
 │   └── logout
 ├── me
 ├── user <username-or-id>
@@ -39,6 +40,21 @@ Possible flags:
 Shows whether a profile is configured and whether the token looks usable.
 
 Possible flags:
+- `--profile <name>`
+- `--json`
+
+### `threads auth import`
+Stores access tokens and optional auth metadata without running the browser OAuth flow.
+Useful for CI and local automation.
+
+Possible flags:
+- `--access-token <token>`
+- `--refresh-token <token>`
+- `--expires-at <iso-timestamp>`
+- `--client-id <id>`
+- `--client-secret <secret>`
+- `--redirect-uri <uri>`
+- `--scopes <a,b,c>`
 - `--profile <name>`
 - `--json`
 
