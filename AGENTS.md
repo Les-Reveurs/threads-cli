@@ -32,6 +32,11 @@ CLI for working with the official Threads API from the terminal.
    - Grep for obvious leaks: `token`, `secret`, `Authorization`, `Bearer`, `.env`.
    - If anything sensitive was committed by mistake, stop and clean the working tree or history before continuing.
 
+## Cross-repo privacy rule
+
+- If you reference other internal tools in docs/examples (for example iCloud / CalDAV / Apple account setup), use only template placeholders and never real personal email addresses, calendar names, or private URLs.
+- For any Apple / iCloud integration docs, specify **app-specific password only** — never imply that a normal Apple ID password is acceptable.
+
 ## Repo-specific guardrails
 
 - This repo is **official API first**. Do not add browser automation, cookie scraping, or unofficial login hacks as the default path.
