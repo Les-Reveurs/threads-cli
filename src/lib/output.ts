@@ -1,1 +1,1 @@
-export * from './output/index.js'
+export * from '../presentation/index.js'

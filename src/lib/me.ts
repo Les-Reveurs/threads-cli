@@ -1,23 +1,11 @@
-import { fetchThreadsApi } from './threads-api.js'
+import { FileConfigStore } from '../infra/config/file-config.store.js'
+import { ThreadsApiAdapter } from '../infra/api/threads-api.adapter.js'
+import { getCurrentProfile as getCurrentProfileUseCase } from '../app/use-cases/profiles/get-current-profile.js'
+import { getUserProfile as getUserProfileUseCase } from '../app/use-cases/profiles/get-user-profile.js'
 
-export type ThreadsProfile = {
-  id: string
-  username?: string
-  name?: string
-  threads_profile_picture_url?: string
-  threads_biography?: string
-}
+export type { ThreadsProfile } from '../domain/profiles/profile.js'
 
-const DEFAULT_FIELDS = ['id', 'username', 'name', 'threads_profile_picture_url', 'threads_biography']
+const api = new ThreadsApiAdapter(new FileConfigStore())
 
-export const getCurrentProfile = async (): Promise<ThreadsProfile> => {
-  return fetchThreadsApi<ThreadsProfile>('me', {
-    fields: DEFAULT_FIELDS.join(','),
-  })
-}
-
-export const getUserProfile = async (usernameOrId: string): Promise<ThreadsProfile> => {
-  return fetchThreadsApi<ThreadsProfile>(usernameOrId, {
-    fields: DEFAULT_FIELDS.join(','),
-  })
-}
+export const getCurrentProfile = () => getCurrentProfileUseCase(api)
+export const getUserProfile = (usernameOrId: string) => getUserProfileUseCase(api, usernameOrId)

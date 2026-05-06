@@ -1,73 +1,13 @@
-import { fetchThreadsApi, mutateThreadsApi } from './threads-api.js'
-import { getCurrentProfile } from './me.js'
+import { FileConfigStore } from '../infra/config/file-config.store.js'
+import { ThreadsApiAdapter } from '../infra/api/threads-api.adapter.js'
+import { listPosts as listPostsUseCase } from '../app/use-cases/posts/list-posts.js'
+import { deletePost as deletePostUseCase } from '../app/use-cases/posts/delete-post.js'
+import { createTextPost as createTextPostUseCase } from '../app/use-cases/posts/create-post.js'
 
-export type ThreadsPost = {
-  id: string
-  text?: string
-  permalink?: string
-  media_product_type?: string
-  media_type?: string
-  timestamp?: string
-  shortcode?: string
-  username?: string
-}
+export type { ThreadsPost, ThreadsPostsListResult } from '../domain/posts/post.js'
 
-export type ThreadsPostsListResult = {
-  data: ThreadsPost[]
-  paging?: {
-    cursors?: {
-      before?: string
-      after?: string
-    }
-  }
-}
+const api = new ThreadsApiAdapter(new FileConfigStore())
 
-const DEFAULT_POST_FIELDS = [
-  'id',
-  'text',
-  'media_type',
-  'media_product_type',
-  'permalink',
-  'shortcode',
-  'timestamp',
-  'username',
-]
-
-export const listPosts = async (limit?: number, after?: string): Promise<ThreadsPostsListResult> => {
-  const profile = await getCurrentProfile()
-
-  return fetchThreadsApi<ThreadsPostsListResult>(`${profile.id}/threads`, {
-    fields: DEFAULT_POST_FIELDS.join(','),
-    limit: limit ? String(limit) : undefined,
-    after,
-  })
-}
-
-export const deletePost = async (id: string): Promise<{ id: string, deleted: boolean }> => {
-  await mutateThreadsApi(id, { method: 'DELETE' })
-  return { id, deleted: true }
-}
-
-export const createTextPost = async (text: string): Promise<{ id: string, creationId: string }> => {
-  const profile = await getCurrentProfile()
-
-  const creation = await mutateThreadsApi<{ id: string }>(`${profile.id}/threads`, {
-    method: 'POST',
-    query: {
-      media_type: 'TEXT',
-      text,
-    },
-  })
-
-  const published = await mutateThreadsApi<{ id: string }>(`${profile.id}/threads_publish`, {
-    method: 'POST',
-    query: {
-      creation_id: creation.id,
-    },
-  })
-
-  return {
-    id: published.id,
-    creationId: creation.id,
-  }
-}
+export const listPosts = (limit?: number, after?: string) => listPostsUseCase(api, limit, after)
+export const deletePost = (id: string) => deletePostUseCase(api, id)
+export const createTextPost = (text: string) => createTextPostUseCase(api, text)
