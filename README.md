@@ -52,10 +52,23 @@ node dist/cli.js help
 
 ## Project structure
 
-- `src/cli.ts` — CLI entrypoint and top-level routing
-- `src/lib/api/*` — HTTP/OAuth transport, fake payload hooks, active profile context
-- `src/lib/output/*` — small renderers by domain
-- `docs/architecture.md` — architecture and module boundaries
+### Current structure
+
+- `src/cli.ts` — current CLI entrypoint and top-level routing
+- `src/lib/api/*` — current HTTP/OAuth transport, fake payload hooks, active profile context
+- `src/lib/output/*` — current small renderers by domain
+
+### Target structure
+
+This repo is converging toward the same layered CLI architecture as `icalendar`:
+
+- `src/app/commands/*` — CLI contract layer
+- `src/app/use-cases/*` — orchestration layer
+- `src/domain/*` — domain entities, value objects, invariants
+- `src/infra/*` — provider adapters, config, storage
+- `src/presentation/*` — text/json renderers
+- `src/shared/*` — tiny cross-cutting helpers
+- `docs/architecture.md` — target architecture and migration rules
 - `docs/api-capabilities.md` — official API capability snapshot
 - `ROADMAP.md` — phased delivery plan
 
