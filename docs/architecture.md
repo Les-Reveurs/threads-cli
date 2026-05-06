@@ -34,13 +34,13 @@ User-facing commands, flags, validation, help text.
 Local profiles, environment variables, token storage, active profile selection.
 
 ### 3. Auth layer
-OAuth bootstrap, token exchange, refresh, validation, logout.
+OAuth bootstrap, token exchange, import, validation, logout.
 
-### 4. Threads API client
-Thin typed wrapper over official Threads API endpoints.
+### 4. API transport layer
+Official Threads HTTP/OAuth transport, fake payload hooks for tests, active profile context resolution.
 
 ### 5. Output layer
-Human-readable terminal rendering plus JSON mode.
+Small focused renderers split by domain (`auth`, `doctor`, `profile`, `posts`) plus JSON mode in the CLI shell.
 
 ### 6. Capability registry
 A small internal map describing which commands are stable, beta, or unsupported by the official API.
