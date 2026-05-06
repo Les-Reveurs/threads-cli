@@ -52,7 +52,9 @@ node dist/cli.js help
 
 ## Project structure
 
-- `src/cli.ts` — CLI entrypoint
+- `src/cli.ts` — CLI entrypoint and top-level routing
+- `src/lib/api/*` — HTTP/OAuth transport, fake payload hooks, active profile context
+- `src/lib/output/*` — small renderers by domain
 - `docs/architecture.md` — architecture and module boundaries
 - `docs/api-capabilities.md` — official API capability snapshot
 - `ROADMAP.md` — phased delivery plan
