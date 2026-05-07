@@ -4,7 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, rm } from 'node:fs/promises'
 
-import { loadConfig, saveConfig, resolveConfigPaths } from '../src/lib/config.js'
+import { FileConfigStore } from '../src/infra/config/file-config.store.js'
 
 const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'threads-cli-test-'))
@@ -20,7 +20,8 @@ const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
 
 test('loadConfig returns defaults when config file is missing', async () => {
   await withTempConfigDir(async () => {
-    const config = await loadConfig()
+    const store = new FileConfigStore()
+    const config = await store.loadConfig()
 
     assert.equal(config.activeProfile, 'default')
     assert.deepEqual(config.profiles, {})
@@ -29,7 +30,8 @@ test('loadConfig returns defaults when config file is missing', async () => {
 
 test('saveConfig persists profiles and loadConfig reads them back', async () => {
   await withTempConfigDir(async () => {
-    await saveConfig({
+    const store = new FileConfigStore()
+    await store.saveConfig({
       activeProfile: 'work',
       profiles: {
         work: {
@@ -40,7 +42,7 @@ test('saveConfig persists profiles and loadConfig reads them back', async () => 
       },
     })
 
-    const loaded = await loadConfig()
+    const loaded = await store.loadConfig()
 
     assert.equal(loaded.activeProfile, 'work')
     assert.equal(loaded.profiles.work?.clientId, 'client-123')
@@ -50,7 +52,7 @@ test('saveConfig persists profiles and loadConfig reads them back', async () => 
 
 test('resolveConfigPaths honors THREADS_CLI_CONFIG_DIR override', async () => {
   await withTempConfigDir(async (configDir) => {
-    const paths = resolveConfigPaths()
+    const paths = new FileConfigStore().resolveConfigPaths()
 
     assert.equal(paths.configDir, configDir)
     assert.equal(paths.configFile, path.join(configDir, 'config.json'))

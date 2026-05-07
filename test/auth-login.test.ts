@@ -4,7 +4,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 
-import { startAuthLogin } from '../src/lib/auth-login.js'
+import { startAuthLogin } from '../src/app/use-cases/auth/login.js'
+import { FileConfigStore } from '../src/infra/config/file-config.store.js'
 
 const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'threads-cli-auth-login-test-'))
@@ -23,7 +24,7 @@ const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
 
 test('startAuthLogin persists oauth inputs and returns authorization url', async () => {
   await withTempConfigDir(async (configDir) => {
-    const result = await startAuthLogin({
+    const result = await startAuthLogin(new FileConfigStore(), {
       clientId: 'client-123',
       clientSecret: 'secret-123',
       redirectUri: 'https://example.com/callback',
@@ -68,7 +69,7 @@ test('startAuthLogin can resolve client id from environment and existing config'
       }, null, 2),
     )
 
-    const result = await startAuthLogin({})
+    const result = await startAuthLogin(new FileConfigStore(), {})
 
     assert.equal(result.profile, 'default')
     assert.equal(result.redirectUri, 'https://env.example/callback')
@@ -79,6 +80,6 @@ test('startAuthLogin can resolve client id from environment and existing config'
 
 test('startAuthLogin throws when no client id is available', async () => {
   await withTempConfigDir(async () => {
-    await assert.rejects(() => startAuthLogin({}), /client id is required/)
+    await assert.rejects(() => startAuthLogin(new FileConfigStore(), {}), /client id is required/)
   })
 })

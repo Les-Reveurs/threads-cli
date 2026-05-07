@@ -4,7 +4,11 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 
-import { createTextPost, deletePost, listPosts } from '../src/lib/posts.js'
+import { createTextPost } from '../src/app/use-cases/posts/create-post.js'
+import { deletePost } from '../src/app/use-cases/posts/delete-post.js'
+import { listPosts } from '../src/app/use-cases/posts/list-posts.js'
+import { FileConfigStore } from '../src/infra/config/file-config.store.js'
+import { ThreadsApiAdapter } from '../src/infra/api/threads-api.adapter.js'
 
 const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'threads-cli-posts-test-'))
@@ -50,7 +54,7 @@ test('listPosts returns posts for current profile', async () => {
       return new Response(JSON.stringify({ data: [{ id: 'post-1', text: 'hello world' }] }), { status: 200 }) as typeof fetch
     }
 
-    const result = await listPosts(5, 'cursor-1')
+    const result = await listPosts(new ThreadsApiAdapter(new FileConfigStore()), 5, 'cursor-1')
 
     assert.equal(result.data[0]?.id, 'post-1')
     assert.equal(result.data[0]?.text, 'hello world')
@@ -69,7 +73,7 @@ test('deletePost calls DELETE on the post id', async () => {
       return new Response('', { status: 200 }) as typeof fetch
     }
 
-    const result = await deletePost('post-42')
+    const result = await deletePost(new ThreadsApiAdapter(new FileConfigStore()), 'post-42')
 
     assert.equal(result.deleted, true)
     assert.equal(seenMethod, 'DELETE')
@@ -96,7 +100,7 @@ test('createTextPost creates container then publishes it', async () => {
       return new Response(JSON.stringify({ id: 'post-99' }), { status: 200 }) as typeof fetch
     }
 
-    const result = await createTextPost('hello threads')
+    const result = await createTextPost(new ThreadsApiAdapter(new FileConfigStore()), 'hello threads')
 
     assert.equal(result.creationId, 'creation-1')
     assert.equal(result.id, 'post-99')

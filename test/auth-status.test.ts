@@ -4,7 +4,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 
-import { getAuthStatus } from '../src/lib/auth-status.js'
+import { getAuthStatus } from '../src/app/use-cases/auth/status.js'
+import { FileConfigStore } from '../src/infra/config/file-config.store.js'
 
 const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'threads-cli-auth-test-'))
@@ -20,7 +21,7 @@ const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
 
 test('getAuthStatus reports missing token for empty config', async () => {
   await withTempConfigDir(async () => {
-    const status = await getAuthStatus()
+    const status = await getAuthStatus(new FileConfigStore())
 
     assert.equal(status.ok, false)
     assert.equal(status.profile, 'default')
@@ -44,7 +45,7 @@ test('getAuthStatus reports configured token and expiry metadata', async () => {
       }, null, 2),
     )
 
-    const status = await getAuthStatus()
+    const status = await getAuthStatus(new FileConfigStore())
 
     assert.equal(status.ok, true)
     assert.equal(status.code, 'ready')
@@ -70,7 +71,7 @@ test('getAuthStatus reports expired token', async () => {
       }, null, 2),
     )
 
-    const status = await getAuthStatus()
+    const status = await getAuthStatus(new FileConfigStore())
 
     assert.equal(status.ok, false)
     assert.equal(status.code, 'expired_token')

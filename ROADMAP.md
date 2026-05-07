@@ -24,9 +24,10 @@
 
 ## Phase 3 — operator ergonomics
 - [x] `--json` output
+- [x] CI-friendly non-interactive auth flow
+- [x] baseline CI (`typecheck`, `test`, `build`)
 - draft files/templates
 - retries and clear error mapping
-- [x] CI-friendly non-interactive auth flow
 - better env/config diagnostics
 
 ## Phase 4 — official API expansion

@@ -4,7 +4,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 
-import { completeAuthExchange } from '../src/lib/auth-exchange.js'
+import { completeAuthExchange } from '../src/app/use-cases/auth/exchange.js'
+import { FileConfigStore } from '../src/infra/config/file-config.store.js'
+import { ThreadsOAuthAdapter } from '../src/infra/oauth/threads-oauth.adapter.js'
 
 const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'threads-cli-auth-exchange-test-'))
@@ -41,7 +43,7 @@ test('completeAuthExchange persists returned access token', async () => {
       headers: { 'content-type': 'application/json' },
     }) as typeof fetch
 
-    const result = await completeAuthExchange({ code: 'code-123' })
+    const result = await completeAuthExchange(new FileConfigStore(), new ThreadsOAuthAdapter(), { code: 'code-123' })
     const saved = JSON.parse(await readFile(path.join(configDir, 'config.json'), 'utf8'))
 
     assert.equal(result.ok, true)
@@ -66,6 +68,6 @@ test('completeAuthExchange requires configured client secret', async () => {
       }, null, 2),
     )
 
-    await assert.rejects(() => completeAuthExchange({ code: 'code-123' }), /client secret is required/)
+    await assert.rejects(() => completeAuthExchange(new FileConfigStore(), new ThreadsOAuthAdapter(), { code: 'code-123' }), /client secret is required/)
   })
 })

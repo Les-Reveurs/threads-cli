@@ -4,7 +4,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 
-import { importAuthToken } from '../src/lib/auth-import.js'
+import { importAuthToken } from '../src/app/use-cases/auth/import-token.js'
+import { FileConfigStore } from '../src/infra/config/file-config.store.js'
 
 const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'threads-cli-auth-import-test-'))
@@ -24,7 +25,7 @@ const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
 
 test('importAuthToken persists access token and optional metadata', async () => {
   await withTempConfigDir(async (configDir) => {
-    const result = await importAuthToken({
+    const result = await importAuthToken(new FileConfigStore(), {
       profile: 'ci',
       accessToken: 'token-abc',
       refreshToken: 'refresh-xyz',
@@ -63,7 +64,7 @@ test('importAuthToken can resolve token from environment and preserve existing p
       }, null, 2),
     )
 
-    const result = await importAuthToken({})
+    const result = await importAuthToken(new FileConfigStore(), {})
 
     assert.equal(result.profile, 'default')
     assert.equal(result.savedProfile.accessToken, 'env-token')
@@ -75,7 +76,7 @@ test('importAuthToken can resolve token from environment and preserve existing p
 test('importAuthToken rejects invalid expires-at values', async () => {
   await withTempConfigDir(async () => {
     await assert.rejects(
-      () => importAuthToken({ accessToken: 'token-abc', expiresAt: 'tomorrow-ish' }),
+      () => importAuthToken(new FileConfigStore(), { accessToken: 'token-abc', expiresAt: 'tomorrow-ish' }),
       /expires-at must be a valid ISO-8601 timestamp/,
     )
   })

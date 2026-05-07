@@ -52,21 +52,13 @@ node dist/cli.js help
 
 ## Project structure
 
-### Current structure
-
-- `src/cli.ts` — current CLI entrypoint and top-level routing
-- `src/lib/api/*` — current HTTP/OAuth transport, fake payload hooks, active profile context
-- `src/lib/output/*` — current small renderers by domain
-
-### Target structure
-
-This repo is converging toward the same layered CLI architecture as `icalendar`:
+This repo now follows the same layered CLI architecture as `icalendar`:
 
 - `src/app/commands/*` — CLI contract layer
 - `src/app/use-cases/*` — orchestration layer
 - `src/domain/*` — domain entities, value objects, invariants
 - `src/infra/*` — provider adapters, config, storage
-- `src/presentation/*` — text/json renderers
+- `src/presentation/*` — text renderers and JSON-ready DTO output
 - `src/shared/*` — tiny cross-cutting helpers
 - `docs/architecture.md` — target architecture and migration rules
 - `docs/api-capabilities.md` — official API capability snapshot
@@ -74,7 +66,7 @@ This repo is converging toward the same layered CLI architecture as `icalendar`:
 
 ## Status
 
-Bootstrap is done. The repo now assumes official API-first design and the next milestone is implementing auth/config/client layers behind the command contracts.
+The MVP command surface is implemented on top of the layered architecture (`app -> domain -> infra -> presentation`).
 
 Current implemented pieces:
 - `threads auth login` scaffold that persists profile OAuth inputs and prints an authorization URL/state
@@ -89,3 +81,4 @@ Current implemented pieces:
 - `threads post create --text ...` for text posts via the official publish flow
 - `threads doctor`
 - `--json` output for the current stable command surface
+- GitHub Actions CI for `typecheck`, `test`, and `build`

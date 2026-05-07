@@ -31,10 +31,10 @@ Starts OAuth login flow and stores resulting tokens in the configured profile.
 
 Possible flags:
 - `--client-id`
+- `--client-secret`
 - `--redirect-uri`
 - `--scopes`
 - `--profile <name>`
-- `--no-open`
 
 ### `threads auth status`
 Shows whether a profile is configured and whether the token looks usable.
@@ -86,10 +86,6 @@ Creates a post through the official post creation flow.
 
 Possible flags:
 - `--text <text>`
-- `--media <path-or-url>`
-- `--reply-control <value>`
-- `--quote <post-id>`
-- `--reply-to <post-id>`
 - `--json`
 
 ### `threads post delete <id>`
@@ -99,7 +95,7 @@ Possible flags:
 - `--json`
 
 ### `threads doctor`
-Checks local env, config, auth prerequisites, and API-related settings.
+Checks local config paths plus auth prerequisites for the active profile.
 
 ## Non-goals for MVP
 

@@ -4,7 +4,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 
-import { logoutAuth } from '../src/lib/auth-logout.js'
+import { logoutAuth } from '../src/app/use-cases/auth/logout.js'
+import { FileConfigStore } from '../src/infra/config/file-config.store.js'
 
 const withTempConfigDir = async (fn: (configDir: string) => Promise<void>) => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'threads-cli-auth-logout-test-'))
@@ -38,7 +39,7 @@ test('logoutAuth clears tokens but keeps static profile config', async () => {
       }, null, 2),
     )
 
-    const result = await logoutAuth()
+    const result = await logoutAuth(new FileConfigStore())
     const saved = JSON.parse(await readFile(configFile, 'utf8'))
 
     assert.equal(result.ok, true)
@@ -55,7 +56,7 @@ test('logoutAuth clears tokens but keeps static profile config', async () => {
 
 test('logoutAuth succeeds even when no tokens are present', async () => {
   await withTempConfigDir(async () => {
-    const result = await logoutAuth()
+    const result = await logoutAuth(new FileConfigStore())
 
     assert.equal(result.ok, true)
     assert.equal(result.profile, 'default')

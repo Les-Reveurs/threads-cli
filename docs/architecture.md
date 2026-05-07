@@ -250,17 +250,19 @@ Target ports:
 
 ## Migration from current structure
 
-Current `src/lib/*` can be migrated gradually:
+The initial `src/lib/*` compatibility layer has been removed after moving the repo to the layered layout.
 
-- `lib/auth-*.ts` -> `app/use-cases/auth/*`
-- `lib/posts.ts` -> split into `app/use-cases/posts/*` + `domain/posts/*`
-- `lib/me.ts` -> `app/use-cases/profiles/*`
-- `lib/api/*` -> `infra/api/*` and `infra/auth/*`
-- `lib/config.ts` -> `infra/config/*`
-- `lib/output/*` -> `presentation/text/*`
-- `lib/errors.ts` -> `shared/errors/*`
+Canonical homes now are:
 
-Do not big-bang rewrite unless necessary. Move by command slice.
+- auth use-cases -> `app/use-cases/auth/*`
+- post use-cases -> `app/use-cases/posts/*`
+- profile use-cases -> `app/use-cases/profiles/*`
+- API/OAuth adapters -> `infra/api/*` and `infra/oauth/*`
+- config store -> `infra/config/*`
+- renderers -> `presentation/text/*`
+- shared errors/types -> `shared/*`
+
+Future changes should extend these layers directly instead of recreating a parallel helper layer.
 
 ---
 
