@@ -11,7 +11,7 @@
     "dev": "tsx src/cli.ts --help",
     "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test test/**/*.test.ts"
+    "test": "node --import tsx --test $(find test -name '*.test.ts' -print)"
   },
   "keywords": [
     "threads",
