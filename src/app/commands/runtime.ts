@@ -79,9 +79,15 @@ const parseBooleanFlag = (args: string[], positive: string, negative: string): b
   return undefined
 }
 
-const printOutput = <T>(args: string[], value: T, render: (value: T) => string) => {
+const printOutput = <T, TJson = T>(
+  args: string[],
+  value: T,
+  render: (value: T) => string,
+  options?: { serializeJson?: (value: T) => TJson },
+) => {
   if (hasFlag(args, '--json')) {
-    console.log(JSON.stringify(value, null, 2))
+    const payload = options?.serializeJson ? options.serializeJson(value) : value
+    console.log(JSON.stringify(payload, null, 2))
     return
   }
   console.log(render(value))
@@ -224,22 +230,14 @@ export const runCommand = async ({ store, api, oauth, args }: RuntimeDeps): Prom
 
     if (args[0] === 'insights' && args[1] === 'post' && args[2]) {
       const insights = await getPostInsights(api, args[2], validateInsightMetrics('post', getMetricFlags(args)))
-      if (hasFlag(args, '--json')) {
-        console.log(JSON.stringify(serializeInsightsResult(insights), null, 2))
-      } else {
-        console.log(renderInsights(`insights post ${args[2]}`, insights))
-      }
+      printOutput(args, insights, (value) => renderInsights(`insights post ${args[2]}`, value), { serializeJson: serializeInsightsResult })
       process.exitCode = 0
       return true
     }
 
     if (args[0] === 'insights' && args[1] === 'user') {
       const insights = await getUserInsights(api, validateInsightMetrics('user', getMetricFlags(args)), getFlagValue(args, '--breakdown'))
-      if (hasFlag(args, '--json')) {
-        console.log(JSON.stringify(serializeInsightsResult(insights), null, 2))
-      } else {
-        console.log(renderInsights('insights user', insights))
-      }
+      printOutput(args, insights, (value) => renderInsights('insights user', value), { serializeJson: serializeInsightsResult })
       process.exitCode = 0
       return true
     }
