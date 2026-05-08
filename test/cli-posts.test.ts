@@ -724,3 +724,50 @@ test('insights user supports json output with summary for clicks metric', async 
     })
   })
 })
+
+
+test('posts list can fetch a public profile posts feed by username', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'posts', 'list', '--user', 'zuck', '--limit', '5', '--after', 'cursor-1'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ id: 'thread-2', text: 'hello world', media_type: 'TEXT' }] },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /posts list: 1 item\(s\)/)
+    assert.match(result.stdout, /id: thread-2/)
+    assert.match(result.stdout, /text: hello world/)
+  })
+})
+
+test('posts list --user supports --json output', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'posts', 'list', '--user', 'zuck', '--json'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ id: 'thread-2', text: 'hello world' }] },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.deepEqual(JSON.parse(result.stdout), {
+      data: [{ id: 'thread-2', text: 'hello world' }],
+    })
+  })
+})

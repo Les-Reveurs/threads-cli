@@ -14,7 +14,7 @@ cli.command('auth import', 'store auth tokens/config for non-interactive CI or l
 cli.command('auth logout', 'clear locally stored auth data')
 cli.command('me', 'show current authenticated profile')
 cli.command('user <usernameOrId>', 'show public profile info')
-cli.command('posts list', 'list posts for the authenticated account')
+cli.command('posts list', 'list posts for the authenticated account or a public profile via --user <username>')
 cli.command('post create [text]', 'create a Threads post')
 cli.command('post delete <id>', 'delete an owned Threads post')
 cli.command('replies list <postId>', 'list replies for a Threads post')

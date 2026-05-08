@@ -180,7 +180,7 @@ export const runCommand = async ({ store, api, oauth, args }: RuntimeDeps): Prom
     }
 
     if (args[0] === 'posts' && args[1] === 'list') {
-      const posts = await listPosts(api, parseIntegerFlag(args, '--limit'), getFlagValue(args, '--after'))
+      const posts = await listPosts(api, parseIntegerFlag(args, '--limit'), getFlagValue(args, '--after'), getFlagValue(args, '--user'))
       printOutput(args, posts, renderPostsList)
       process.exitCode = 0
       return true

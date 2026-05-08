@@ -104,6 +104,15 @@ export class ThreadsApiAdapter implements ThreadsApiPort {
     })
   }
 
+  async listProfilePosts(username: string, limit?: number, after?: string): Promise<ThreadsPostsListResult> {
+    return this.fetchThreadsApi<ThreadsPostsListResult>('profile_posts', {
+      username,
+      fields: DEFAULT_POST_FIELDS.join(','),
+      limit: limit ? String(limit) : undefined,
+      after,
+    })
+  }
+
   async deletePost(id: string): Promise<{ id: string, deleted: boolean }> {
     await this.mutateThreadsApi(id, { method: 'DELETE' })
     return { id, deleted: true }

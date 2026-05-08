@@ -9,6 +9,7 @@ export interface ThreadsApiPort {
   getCurrentProfile(): Promise<ThreadsProfile>
   getUserProfile(usernameOrId: string): Promise<ThreadsProfile>
   listPosts(limit?: number, after?: string): Promise<ThreadsPostsListResult>
+  listProfilePosts(username: string, limit?: number, after?: string): Promise<ThreadsPostsListResult>
   createPost(input: CreatePostInput): Promise<CreatePostResult>
   listReplies(postId: string, after?: string): Promise<ThreadsRepliesListResult>
   listMentions(after?: string): Promise<ThreadsMentionsListResult>

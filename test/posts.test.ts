@@ -506,3 +506,24 @@ test('buildInsightSummary returns null for unsupported metrics', async () => {
 
   assert.equal(buildInsightSummary({ name: 'impressions', values: [{ value: 1 }] }), null)
 })
+
+
+test('listPosts can retrieve a public profile posts feed by username', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    let seenUrl = ''
+    global.fetch = async (input) => {
+      seenUrl = String(input)
+      return new Response(JSON.stringify({ data: [{ id: 'thread-2', text: 'hello world' }] }), { status: 200 }) as typeof fetch
+    }
+
+    const result = await listPosts(new ThreadsApiAdapter(new FileConfigStore()), 5, 'cursor-1', 'zuck')
+
+    assert.deepEqual(result, { data: [{ id: 'thread-2', text: 'hello world' }] })
+    assert.match(seenUrl, /\/profile_posts\?/)
+    assert.match(seenUrl, /username=zuck/)
+    assert.match(seenUrl, /limit=5/)
+    assert.match(seenUrl, /after=cursor-1/)
+  })
+})
