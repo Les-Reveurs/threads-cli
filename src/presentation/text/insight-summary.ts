@@ -22,6 +22,10 @@ export const buildInsightSummary = (insight: ThreadsInsight): ThreadsInsightSumm
     return { summary: `${value} replies` }
   }
 
+  if (insight.name === 'clicks' && typeof value === 'number') {
+    return { summary: `${value} clicks` }
+  }
+
   if (insight.name === 'reposts' && typeof value === 'number') {
     return { summary: `${value} reposts` }
   }
