@@ -3,6 +3,7 @@ import type { ConfigStorePort } from '../../app/ports/config-store.port.js'
 import { normalizeCreatePostInput, type CreatePostInput, type CreatePostResult } from '../../domain/posts/create-post.js'
 import { DEFAULT_POST_FIELDS, type ThreadsPostsListResult } from '../../domain/posts/post.js'
 import { DEFAULT_PROFILE_FIELDS, type ThreadsProfile } from '../../domain/profiles/profile.js'
+import { DEFAULT_REPLY_FIELDS, type ManageReplyResult, type ThreadsRepliesListResult } from '../../domain/replies/reply.js'
 import { API_BASE_URL } from './constants.js'
 import { readFakeApiPayload } from '../testing/fake-payload.js'
 import { ensureValue, CliError } from '../../shared/errors/cli-error.js'
@@ -104,6 +105,21 @@ export class ThreadsApiAdapter implements ThreadsApiPort {
   async deletePost(id: string): Promise<{ id: string, deleted: boolean }> {
     await this.mutateThreadsApi(id, { method: 'DELETE' })
     return { id, deleted: true }
+  }
+
+  async listReplies(postId: string, after?: string): Promise<ThreadsRepliesListResult> {
+    return this.fetchThreadsApi<ThreadsRepliesListResult>(`${postId}/replies`, {
+      fields: DEFAULT_REPLY_FIELDS.join(','),
+      after,
+    })
+  }
+
+  async manageReply(replyId: string, hidden: boolean): Promise<ManageReplyResult> {
+    const response = await this.mutateThreadsApi<{ success?: boolean }>(replyId, {
+      method: 'POST',
+      query: { hide: hidden ? 'true' : 'false' },
+    })
+    return { id: replyId, hidden, success: response.success ?? true }
   }
 
   private async waitForContainerReady(creationId: string, input: CreatePostInput): Promise<string> {

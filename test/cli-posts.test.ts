@@ -229,6 +229,60 @@ test('post create supports carousel posts with repeated --media-url flags', asyn
   })
 })
 
+test('replies list renders fetched replies', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'replies', 'list', 'post-1'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ id: 'reply-1', username: 'bender', text: 'hi', hide_status: false }], paging: { cursors: { after: 'cursor-2' } } },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /replies list: 1 item\(s\)/)
+    assert.match(result.stdout, /id: reply-1/)
+    assert.match(result.stdout, /next_after: cursor-2/)
+  })
+})
+
+test('replies hide and unhide support json output', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const hidden = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'replies', 'hide', 'reply-42', '--json'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([{ success: true }]),
+      },
+      encoding: 'utf8',
+    })
+
+    const unhidden = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'replies', 'unhide', 'reply-42', '--json'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([{ success: true }]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(hidden.status, 0)
+    assert.equal(unhidden.status, 0)
+    assert.deepEqual(JSON.parse(hidden.stdout), { id: 'reply-42', hidden: true, success: true })
+    assert.deepEqual(JSON.parse(unhidden.stdout), { id: 'reply-42', hidden: false, success: true })
+  })
+})
+
 test('post create waits for video readiness by default', async () => {
   await withTempConfigDir(async (configDir) => {
     await writeReadyConfig(configDir)

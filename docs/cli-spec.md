@@ -21,6 +21,9 @@ threads
 ├── posts list
 ├── post create [text]
 ├── post delete <id>
+├── replies list <post-id>
+├── replies hide <reply-id>
+├── replies unhide <reply-id>
 └── doctor
 ```
 
@@ -99,6 +102,25 @@ Possible flags:
 
 ### `threads post delete <id>`
 Deletes an owned post.
+
+Possible flags:
+- `--json`
+
+### `threads replies list <post-id>`
+Lists replies for a Threads post.
+
+Possible flags:
+- `--after <cursor>`
+- `--json`
+
+### `threads replies hide <reply-id>`
+Hides a reply.
+
+Possible flags:
+- `--json`
+
+### `threads replies unhide <reply-id>`
+Unhides a reply.
 
 Possible flags:
 - `--json`

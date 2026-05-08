@@ -7,6 +7,8 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { createPost } from '../src/app/use-cases/posts/create-post.js'
 import { deletePost } from '../src/app/use-cases/posts/delete-post.js'
 import { listPosts } from '../src/app/use-cases/posts/list-posts.js'
+import { hideReply, unhideReply } from '../src/app/use-cases/replies/manage-reply.js'
+import { listReplies } from '../src/app/use-cases/replies/list-replies.js'
 import { FileConfigStore } from '../src/infra/config/file-config.store.js'
 import { ThreadsApiAdapter } from '../src/infra/api/threads-api.adapter.js'
 
@@ -223,6 +225,44 @@ test('createPost waits for video container readiness before publish', async () =
     assert.equal(result.containerStatus, 'FINISHED')
     assert.match(calls[2]?.url || '', /creation-video-1\?fields=status%2Cstatus_code%2Cerror_message&access_token=token-abc/)
     assert.match(calls[4]?.url || '', /threads_publish\?creation_id=creation-video-1&access_token=token-abc/)
+  })
+})
+
+test('listReplies returns replies for a post', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    let seenUrl = ''
+    global.fetch = async (input) => {
+      seenUrl = String(input)
+      return new Response(JSON.stringify({ data: [{ id: 'reply-1', text: 'hi', hide_status: false }] }), { status: 200 }) as typeof fetch
+    }
+
+    const result = await listReplies(new ThreadsApiAdapter(new FileConfigStore()), 'post-1', 'cursor-1')
+
+    assert.equal(result.data[0]?.id, 'reply-1')
+    assert.match(seenUrl, /\/post-1\/replies\?fields=/)
+    assert.match(seenUrl, /after=cursor-1/)
+  })
+})
+
+test('hideReply and unhideReply call reply moderation endpoint', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const calls: string[] = []
+    global.fetch = async (input, _init) => {
+      calls.push(String(input))
+      return new Response(JSON.stringify({ success: true }), { status: 200 }) as typeof fetch
+    }
+
+    const hidden = await hideReply(new ThreadsApiAdapter(new FileConfigStore()), 'reply-42')
+    const unhidden = await unhideReply(new ThreadsApiAdapter(new FileConfigStore()), 'reply-42')
+
+    assert.equal(hidden.hidden, true)
+    assert.equal(unhidden.hidden, false)
+    assert.match(calls[0] || '', /\/reply-42\?hide=true&access_token=token-abc/)
+    assert.match(calls[1] || '', /\/reply-42\?hide=false&access_token=token-abc/)
   })
 })
 
