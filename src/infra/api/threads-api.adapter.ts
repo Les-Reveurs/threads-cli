@@ -99,6 +99,35 @@ export class ThreadsApiAdapter implements ThreadsApiPort {
     const profile = await this.getCurrentProfile()
     const normalized = normalizeCreatePostInput(input)
 
+    if (normalized.mediaType === 'CAROUSEL') {
+      const childIds: string[] = []
+      for (const mediaUrl of normalized.mediaUrls || []) {
+        const child = await this.mutateThreadsApi<{ id: string }>(`${profile.id}/threads`, {
+          method: 'POST',
+          query: {
+            media_type: 'IMAGE',
+            image_url: mediaUrl,
+            is_carousel_item: 'true',
+          },
+        })
+        childIds.push(child.id)
+      }
+
+      const creation = await this.mutateThreadsApi<{ id: string }>(`${profile.id}/threads`, {
+        method: 'POST',
+        query: {
+          media_type: 'CAROUSEL',
+          children: childIds.join(','),
+          text: normalized.text,
+          reply_to_id: normalized.replyToId,
+          quote_post_id: normalized.quotePostId,
+          reply_control: normalized.replyControl,
+        },
+      })
+      const published = await this.mutateThreadsApi<{ id: string }>(`${profile.id}/threads_publish`, { method: 'POST', query: { creation_id: creation.id } })
+      return { id: published.id, creationId: creation.id, mediaType: normalized.mediaType }
+    }
+
     const query: Record<string, string | undefined> = {
       media_type: normalized.mediaType,
       text: normalized.text,

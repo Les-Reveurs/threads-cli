@@ -191,3 +191,37 @@ test('post create supports --json output for media posts', async () => {
     })
   })
 })
+
+test('post create supports carousel posts with repeated --media-url flags', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', [
+      '--import', 'tsx', 'src/cli.ts', 'post', 'create', '--json',
+      '--text', 'carousel time',
+      '--media-url', 'https://cdn.example.test/pic-1.png',
+      '--media-url', 'https://cdn.example.test/pic-2.jpg',
+    ], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { id: 'user-1', username: 'bender' },
+          { id: 'child-1' },
+          { id: 'child-2' },
+          { id: 'creation-4' },
+          { id: 'post-102' },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.deepEqual(JSON.parse(result.stdout), {
+      id: 'post-102',
+      creationId: 'creation-4',
+      mediaType: 'CAROUSEL',
+    })
+  })
+})

@@ -86,8 +86,8 @@ Creates a post through the official post creation flow.
 
 Possible flags:
 - `--text <text>`
-- `--media-url <url>`
-- `--media-type <TEXT|IMAGE|VIDEO>`
+- `--media-url <url>` (repeat for carousel)
+- `--media-type <TEXT|IMAGE|VIDEO|CAROUSEL>`
 - `--alt-text <text>`
 - `--reply-to <post-id>`
 - `--quote <post-id>`

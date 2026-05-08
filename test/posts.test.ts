@@ -152,3 +152,46 @@ test('createPost creates image quote reply container with metadata', async () =>
     assert.match(calls[1]?.url || '', /reply_control=mentioned_only/)
   })
 })
+
+test('createPost creates carousel container from multiple image urls', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const calls: Array<{ url: string, method: string }> = []
+    global.fetch = async (input, init) => {
+      calls.push({ url: String(input), method: init?.method || 'GET' })
+
+      if (calls.length === 1) {
+        return new Response(JSON.stringify({ id: 'user-1', username: 'bender' }), { status: 200 }) as typeof fetch
+      }
+      if (calls.length === 2) {
+        return new Response(JSON.stringify({ id: 'child-1' }), { status: 200 }) as typeof fetch
+      }
+      if (calls.length === 3) {
+        return new Response(JSON.stringify({ id: 'child-2' }), { status: 200 }) as typeof fetch
+      }
+      if (calls.length === 4) {
+        return new Response(JSON.stringify({ id: 'creation-4' }), { status: 200 }) as typeof fetch
+      }
+      return new Response(JSON.stringify({ id: 'post-102' }), { status: 200 }) as typeof fetch
+    }
+
+    const result = await createPost(new ThreadsApiAdapter(new FileConfigStore()), {
+      text: 'carousel time',
+      mediaUrls: [
+        'https://cdn.example.test/pic-1.png',
+        'https://cdn.example.test/pic-2.jpg',
+      ],
+    })
+
+    assert.equal(result.creationId, 'creation-4')
+    assert.equal(result.id, 'post-102')
+    assert.equal(result.mediaType, 'CAROUSEL')
+    assert.match(calls[1]?.url || '', /media_type=IMAGE/)
+    assert.match(calls[1]?.url || '', /is_carousel_item=true/)
+    assert.match(calls[2]?.url || '', /image_url=https%3A%2F%2Fcdn\.example\.test%2Fpic-2\.jpg/)
+    assert.match(calls[3]?.url || '', /media_type=CAROUSEL/)
+    assert.match(calls[3]?.url || '', /children=child-1%2Cchild-2/)
+    assert.match(calls[3]?.url || '', /text=carousel\+time/)
+  })
+})

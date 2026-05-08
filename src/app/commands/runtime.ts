@@ -28,6 +28,17 @@ const getFlagValue = (args: string[], name: string): string | undefined => {
   return args[index + 1]?.startsWith('--') ? undefined : args[index + 1]
 }
 
+const getFlagValues = (args: string[], name: string): string[] => {
+  const values: string[] = []
+  for (let index = 0; index < args.length; index += 1) {
+    if (args[index] === name) {
+      const value = args[index + 1]
+      if (value && !value.startsWith('--')) values.push(value)
+    }
+  }
+  return values
+}
+
 const hasFlag = (args: string[], name: string): boolean => args.includes(name)
 const parseIntegerFlag = (args: string[], name: string): number | undefined => {
   const value = getFlagValue(args, name)
@@ -139,10 +150,12 @@ export const runCommand = async ({ store, api, oauth, args }: RuntimeDeps): Prom
 
     if (args[0] === 'post' && args[1] === 'create') {
       const text = getFlagValue(args, '--text') || args.slice(2).join(' ').trim() || undefined
+      const mediaUrls = [...getFlagValues(args, '--media-url'), ...getFlagValues(args, '--media')]
       const created = await createPost(api, {
         text,
-        mediaUrl: getFlagValue(args, '--media-url') || getFlagValue(args, '--media'),
-        mediaType: getFlagValue(args, '--media-type') as 'TEXT' | 'IMAGE' | 'VIDEO' | undefined,
+        mediaUrl: mediaUrls[0],
+        mediaUrls,
+        mediaType: getFlagValue(args, '--media-type') as 'TEXT' | 'IMAGE' | 'VIDEO' | 'CAROUSEL' | undefined,
         altText: getFlagValue(args, '--alt-text'),
         replyToId: getFlagValue(args, '--reply-to'),
         quotePostId: getFlagValue(args, '--quote'),
