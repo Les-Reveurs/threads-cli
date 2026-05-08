@@ -549,3 +549,46 @@ test('insights post renders likes metric with friendly summary', async () => {
     assert.match(result.stdout, /summary: 12 likes/)
   })
 })
+
+
+test('insights post renders reposts metric with friendly summary', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'post', 'post-7'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ name: 'reposts', period: 'lifetime', values: [{ value: 3 }] }] },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /summary: 3 reposts/)
+  })
+})
+
+test('insights post renders quotes metric with friendly summary', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'post', 'post-7'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ name: 'quotes', period: 'lifetime', values: [{ value: 5 }] }] },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /summary: 5 quotes/)
+  })
+})

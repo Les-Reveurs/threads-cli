@@ -492,3 +492,11 @@ test('buildInsightSummary returns follower summary with top breakdown', async ()
     'top_breakdown: US = 5000',
   ])
 })
+
+
+test('buildInsightSummary returns summary for reposts and quotes metrics', async () => {
+  const { buildInsightSummary } = await import('../src/presentation/text/insight-summary.js')
+
+  assert.deepEqual(buildInsightSummary({ name: 'reposts', values: [{ value: 3 }] }), ['summary: 3 reposts'])
+  assert.deepEqual(buildInsightSummary({ name: 'quotes', values: [{ value: 5 }] }), ['summary: 5 quotes'])
+})

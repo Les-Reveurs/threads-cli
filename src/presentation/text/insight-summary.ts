@@ -17,6 +17,14 @@ export const buildInsightSummary = (insight: ThreadsInsight): string[] => {
     return [`summary: ${value} replies`]
   }
 
+  if (insight.name === 'reposts' && typeof value === 'number') {
+    return [`summary: ${value} reposts`]
+  }
+
+  if (insight.name === 'quotes' && typeof value === 'number') {
+    return [`summary: ${value} quotes`]
+  }
+
   if (insight.name === 'followers_count' && typeof value === 'number') {
     const top = normalizeInsightBreakdowns(insight.total_value?.breakdowns)
       .flatMap((breakdown) => breakdown.results)
