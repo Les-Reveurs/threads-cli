@@ -497,7 +497,7 @@ test('buildInsightSummary returns structured summary for reposts and quotes metr
   const { buildInsightSummary } = await import('../src/presentation/text/insight-summary.js')
 
   assert.deepEqual(buildInsightSummary({ name: 'reposts', values: [{ value: 3 }] }), { summary: '3 reposts' })
-  assert.deepEqual(buildInsightSummary({ name: 'quotes', values: [{ value: 5 }] }), { summary: '5 quotes' })
+  assert.deepEqual(buildInsightSummary({ name: 'shares', values: [{ value: 8 }] }), { summary: '8 shares' })
 })
 
 test('buildInsightSummary returns null for unsupported metrics', async () => {

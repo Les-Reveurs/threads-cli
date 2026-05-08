@@ -624,3 +624,53 @@ test('insights post renders quotes metric with friendly summary', async () => {
     assert.match(result.stdout, /summary: 5 quotes/)
   })
 })
+
+
+test('insights post renders shares metric with friendly summary', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'post', 'post-7'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ name: 'shares', period: 'lifetime', values: [{ value: 8 }] }] },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /summary: 8 shares/)
+  })
+})
+
+test('insights post supports json output with summary for shares metric', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'post', 'post-7', '--json'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ name: 'shares', period: 'lifetime', values: [{ value: 8 }] }] },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.deepEqual(JSON.parse(result.stdout), {
+      data: [{
+        name: 'shares',
+        period: 'lifetime',
+        values: [{ value: 8 }],
+        summary: { summary: '8 shares' },
+      }],
+    })
+  })
+})
