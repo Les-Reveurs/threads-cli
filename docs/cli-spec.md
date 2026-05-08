@@ -24,6 +24,7 @@ threads
 ├── replies list <post-id>
 ├── replies hide <reply-id>
 ├── replies unhide <reply-id>
+├── mentions list
 └── doctor
 ```
 
@@ -123,6 +124,13 @@ Possible flags:
 Unhides a reply.
 
 Possible flags:
+- `--json`
+
+### `threads mentions list`
+Lists mentions for the authenticated account.
+
+Possible flags:
+- `--after <cursor>`
 - `--json`
 
 ### `threads doctor`

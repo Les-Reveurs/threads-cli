@@ -43,6 +43,7 @@ threads posts list
 threads replies list <post-id>
 threads replies hide <reply-id>
 threads replies unhide <reply-id>
+threads mentions list
 threads user <username-or-id>
 threads doctor
 ```
@@ -91,5 +92,6 @@ Current implemented pieces:
 - `threads doctor`
 - `threads replies list <post-id>`
 - `threads replies hide <reply-id>` / `threads replies unhide <reply-id>`
+- `threads mentions list`
 - `--json` output for the current stable command surface
 - GitHub Actions CI for `typecheck`, `test`, and `build`

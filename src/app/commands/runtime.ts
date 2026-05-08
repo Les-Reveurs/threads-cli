@@ -12,9 +12,10 @@ import { getUserProfile } from '../use-cases/profiles/get-user-profile.js'
 import { listPosts } from '../use-cases/posts/list-posts.js'
 import { createPost } from '../use-cases/posts/create-post.js'
 import { deletePost } from '../use-cases/posts/delete-post.js'
+import { listMentions } from '../use-cases/mentions/list-mentions.js'
 import { hideReply, unhideReply } from '../use-cases/replies/manage-reply.js'
 import { listReplies } from '../use-cases/replies/list-replies.js'
-import { renderAuthExchange, renderAuthImport, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile, renderRepliesList, renderReplyManaged } from '../../presentation/index.js'
+import { renderAuthExchange, renderAuthImport, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderMentionsList, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile, renderRepliesList, renderReplyManaged } from '../../presentation/index.js'
 import { CliError } from '../../shared/errors/cli-error.js'
 
 export type RuntimeDeps = {
@@ -187,6 +188,13 @@ export const runCommand = async ({ store, api, oauth, args }: RuntimeDeps): Prom
     if (args[0] === 'replies' && args[1] === 'list' && args[2]) {
       const replies = await listReplies(api, args[2], getFlagValue(args, '--after'))
       printOutput(args, replies, renderRepliesList)
+      process.exitCode = 0
+      return true
+    }
+
+    if (args[0] === 'mentions' && args[1] === 'list') {
+      const mentions = await listMentions(api, getFlagValue(args, '--after'))
+      printOutput(args, mentions, renderMentionsList)
       process.exitCode = 0
       return true
     }

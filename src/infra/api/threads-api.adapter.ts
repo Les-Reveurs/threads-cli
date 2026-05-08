@@ -1,6 +1,7 @@
 import type { ThreadsApiPort } from '../../app/ports/threads-api.port.js'
 import type { ConfigStorePort } from '../../app/ports/config-store.port.js'
 import { normalizeCreatePostInput, type CreatePostInput, type CreatePostResult } from '../../domain/posts/create-post.js'
+import { DEFAULT_MENTION_FIELDS, type ThreadsMentionsListResult } from '../../domain/mentions/mention.js'
 import { DEFAULT_POST_FIELDS, type ThreadsPostsListResult } from '../../domain/posts/post.js'
 import { DEFAULT_PROFILE_FIELDS, type ThreadsProfile } from '../../domain/profiles/profile.js'
 import { DEFAULT_REPLY_FIELDS, type ManageReplyResult, type ThreadsRepliesListResult } from '../../domain/replies/reply.js'
@@ -110,6 +111,13 @@ export class ThreadsApiAdapter implements ThreadsApiPort {
   async listReplies(postId: string, after?: string): Promise<ThreadsRepliesListResult> {
     return this.fetchThreadsApi<ThreadsRepliesListResult>(`${postId}/replies`, {
       fields: DEFAULT_REPLY_FIELDS.join(','),
+      after,
+    })
+  }
+
+  async listMentions(after?: string): Promise<ThreadsMentionsListResult> {
+    return this.fetchThreadsApi<ThreadsMentionsListResult>('mentions', {
+      fields: DEFAULT_MENTION_FIELDS.join(','),
       after,
     })
   }

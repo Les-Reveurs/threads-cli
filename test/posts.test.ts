@@ -4,6 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 
+import { listMentions } from '../src/app/use-cases/mentions/list-mentions.js'
 import { createPost } from '../src/app/use-cases/posts/create-post.js'
 import { deletePost } from '../src/app/use-cases/posts/delete-post.js'
 import { listPosts } from '../src/app/use-cases/posts/list-posts.js'
@@ -225,6 +226,24 @@ test('createPost waits for video container readiness before publish', async () =
     assert.equal(result.containerStatus, 'FINISHED')
     assert.match(calls[2]?.url || '', /creation-video-1\?fields=status%2Cstatus_code%2Cerror_message&access_token=token-abc/)
     assert.match(calls[4]?.url || '', /threads_publish\?creation_id=creation-video-1&access_token=token-abc/)
+  })
+})
+
+test('listMentions returns mentions for the authenticated account', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    let seenUrl = ''
+    global.fetch = async (input) => {
+      seenUrl = String(input)
+      return new Response(JSON.stringify({ data: [{ id: 'mention-1', text: 'hey @bender', username: 'fry' }] }), { status: 200 }) as typeof fetch
+    }
+
+    const result = await listMentions(new ThreadsApiAdapter(new FileConfigStore()), 'cursor-9')
+
+    assert.equal(result.data[0]?.id, 'mention-1')
+    assert.match(seenUrl, /\/mentions\?fields=/)
+    assert.match(seenUrl, /after=cursor-9/)
   })
 })
 

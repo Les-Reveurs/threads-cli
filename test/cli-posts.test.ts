@@ -229,6 +229,29 @@ test('post create supports carousel posts with repeated --media-url flags', asyn
   })
 })
 
+test('mentions list renders fetched mentions', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'mentions', 'list'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ id: 'mention-1', username: 'fry', text: 'hey @bender' }], paging: { cursors: { after: 'cursor-3' } } },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /mentions list: 1 item\(s\)/)
+    assert.match(result.stdout, /id: mention-1/)
+    assert.match(result.stdout, /next_after: cursor-3/)
+  })
+})
+
 test('replies list renders fetched replies', async () => {
   await withTempConfigDir(async (configDir) => {
     await writeReadyConfig(configDir)
