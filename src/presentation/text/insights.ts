@@ -1,5 +1,6 @@
 import pc from 'picocolors'
 import { normalizeInsightBreakdowns, type ThreadsInsight, type ThreadsInsightsResult } from '../../domain/insights/insight.js'
+import { buildInsightSummary } from './insight-summary.js'
 
 const stringifyValue = (value: unknown): string => {
   if (value === undefined) return '-'
@@ -37,29 +38,6 @@ const renderValues = (insight: ThreadsInsight): string => {
   return values.length ? stringifyValue(values) : '-'
 }
 
-const renderMetricSummary = (insight: ThreadsInsight): string[] => {
-  const value = insightPrimaryValue(insight)
-
-  if (insight.name === 'views' && typeof value === 'number') {
-    return [`  summary: ${value} views`]
-  }
-
-  if (insight.name === 'followers_count' && typeof value === 'number') {
-    const breakdowns = normalizeInsightBreakdowns(insight.total_value?.breakdowns)
-    const top = breakdowns
-      .flatMap((breakdown) => breakdown.results)
-      .filter((entry) => typeof entry.value === 'number')
-      .sort((left, right) => Number(right.value) - Number(left.value))[0]
-
-    return [
-      `  summary: ${value} followers`,
-      `  top_breakdown: ${top ? `${top.dimensionValues.join(', ') || '-'} = ${top.value}` : '-'}`,
-    ]
-  }
-
-  return []
-}
-
 const renderInsightLine = (insight: ThreadsInsight): string => [
   `- metric: ${insight.name}`,
   `  period: ${insight.period ?? '-'}`,
@@ -68,7 +46,7 @@ const renderInsightLine = (insight: ThreadsInsight): string => [
   `  value: ${stringifyValue(insightPrimaryValue(insight))}`,
   `  total_value: ${stringifyValue(insight.total_value?.value)}`,
   `  values: ${renderValues(insight)}`,
-  ...renderMetricSummary(insight),
+  ...buildInsightSummary(insight).map((line) => `  ${line}`),
   ...renderBreakdowns(insight),
 ].join('\n')
 

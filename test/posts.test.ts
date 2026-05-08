@@ -450,3 +450,45 @@ test('normalizeInsightsResult tolerates malformed records', async () => {
     ],
   })
 })
+
+
+test('buildInsightSummary returns summary for views metric', async () => {
+  const { buildInsightSummary } = await import('../src/presentation/text/insight-summary.js')
+
+  const summary = buildInsightSummary({
+    name: 'views',
+    values: [{ value: 42 }],
+  })
+
+  assert.deepEqual(summary, ['summary: 42 views'])
+})
+
+test('buildInsightSummary returns summary for likes and replies metrics', async () => {
+  const { buildInsightSummary } = await import('../src/presentation/text/insight-summary.js')
+
+  assert.deepEqual(buildInsightSummary({ name: 'likes', values: [{ value: 12 }] }), ['summary: 12 likes'])
+  assert.deepEqual(buildInsightSummary({ name: 'replies', values: [{ value: 7 }] }), ['summary: 7 replies'])
+})
+
+test('buildInsightSummary returns follower summary with top breakdown', async () => {
+  const { buildInsightSummary } = await import('../src/presentation/text/insight-summary.js')
+
+  const summary = buildInsightSummary({
+    name: 'followers_count',
+    total_value: {
+      value: 9000,
+      breakdowns: [{
+        dimensionKeys: ['country'],
+        results: [
+          { dimensionValues: ['US'], value: 5000 },
+          { dimensionValues: ['RS'], value: 4000 },
+        ],
+      }],
+    },
+  })
+
+  assert.deepEqual(summary, [
+    'summary: 9000 followers',
+    'top_breakdown: US = 5000',
+  ])
+})

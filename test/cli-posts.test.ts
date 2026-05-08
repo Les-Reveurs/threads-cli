@@ -528,3 +528,24 @@ test('insights user renders followers_count breakdown with friendly summary', as
     assert.match(result.stdout, /top_breakdown: US = 5000/)
   })
 })
+
+test('insights post renders likes metric with friendly summary', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'post', 'post-7'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ name: 'likes', period: 'lifetime', values: [{ value: 12 }] }] },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /summary: 12 likes/)
+  })
+})
