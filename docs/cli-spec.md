@@ -92,6 +92,9 @@ Possible flags:
 - `--reply-to <post-id>`
 - `--quote <post-id>`
 - `--reply-control <everyone|accounts_you_follow|mentioned_only>`
+- `--wait` / `--no-wait`
+- `--publish-poll-ms <ms>`
+- `--publish-timeout-ms <ms>`
 - `--json`
 
 ### `threads post delete <id>`

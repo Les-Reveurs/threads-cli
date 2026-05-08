@@ -47,6 +47,12 @@ const parseIntegerFlag = (args: string[], name: string): number | undefined => {
   return Number.isFinite(parsed) ? parsed : undefined
 }
 
+const parseBooleanFlag = (args: string[], positive: string, negative: string): boolean | undefined => {
+  if (args.includes(positive)) return true
+  if (args.includes(negative)) return false
+  return undefined
+}
+
 const printOutput = <T>(args: string[], value: T, render: (value: T) => string) => {
   if (hasFlag(args, '--json')) {
     console.log(JSON.stringify(value, null, 2))
@@ -160,8 +166,11 @@ export const runCommand = async ({ store, api, oauth, args }: RuntimeDeps): Prom
         replyToId: getFlagValue(args, '--reply-to'),
         quotePostId: getFlagValue(args, '--quote'),
         replyControl: getFlagValue(args, '--reply-control') as 'everyone' | 'accounts_you_follow' | 'mentioned_only' | undefined,
+        waitForPublish: parseBooleanFlag(args, '--wait', '--no-wait'),
+        publishPollIntervalMs: parseIntegerFlag(args, '--publish-poll-ms'),
+        publishTimeoutMs: parseIntegerFlag(args, '--publish-timeout-ms'),
       })
-      printOutput(args, created, (value) => renderPostCreated(value.id, value.creationId, value.mediaType))
+      printOutput(args, created, (value) => renderPostCreated(value.id, value.creationId, value.mediaType, value.containerStatus))
       process.exitCode = 0
       return true
     }

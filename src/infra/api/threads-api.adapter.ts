@@ -25,6 +25,17 @@ const parseJson = async (response: Response): Promise<unknown> => {
   return text ? JSON.parse(text) : null
 }
 
+const sleep = async (ms: number) => {
+  if (ms <= 0) return
+  await new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+type ContainerStatusResponse = {
+  status?: string
+  status_code?: string
+  error_message?: string
+}
+
 export class ThreadsApiAdapter implements ThreadsApiPort {
   constructor(private readonly store: ConfigStorePort) {}
 
@@ -95,6 +106,26 @@ export class ThreadsApiAdapter implements ThreadsApiPort {
     return { id, deleted: true }
   }
 
+  private async waitForContainerReady(creationId: string, input: CreatePostInput): Promise<string> {
+    const timeoutMs = input.publishTimeoutMs ?? 120000
+    const pollIntervalMs = input.publishPollIntervalMs ?? 2000
+    const deadline = Date.now() + timeoutMs
+
+    while (Date.now() <= deadline) {
+      const status = await this.fetchThreadsApi<ContainerStatusResponse>(creationId, { fields: 'status,status_code,error_message' })
+      const normalized = status.status_code || status.status || 'UNKNOWN'
+
+      if (['FINISHED', 'PUBLISHED'].includes(normalized)) return normalized
+      if (['ERROR', 'EXPIRED', 'FAILED'].includes(normalized)) {
+        throw new CliError('video_processing_failed', status.error_message || `video container processing failed with status ${normalized}`)
+      }
+
+      await sleep(pollIntervalMs)
+    }
+
+    throw new CliError('video_processing_timeout', `video container did not become ready within ${timeoutMs}ms`)
+  }
+
   async createPost(input: CreatePostInput): Promise<CreatePostResult> {
     const profile = await this.getCurrentProfile()
     const normalized = normalizeCreatePostInput(input)
@@ -140,7 +171,9 @@ export class ThreadsApiAdapter implements ThreadsApiPort {
     }
 
     const creation = await this.mutateThreadsApi<{ id: string }>(`${profile.id}/threads`, { method: 'POST', query })
+    const shouldWaitForPublish = input.waitForPublish ?? normalized.mediaType === 'VIDEO'
+    const containerStatus = shouldWaitForPublish ? await this.waitForContainerReady(creation.id, input) : undefined
     const published = await this.mutateThreadsApi<{ id: string }>(`${profile.id}/threads_publish`, { method: 'POST', query: { creation_id: creation.id } })
-    return { id: published.id, creationId: creation.id, mediaType: normalized.mediaType }
+    return { id: published.id, creationId: creation.id, mediaType: normalized.mediaType, containerStatus }
   }
 }

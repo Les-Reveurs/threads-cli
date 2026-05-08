@@ -12,12 +12,16 @@ export type CreatePostInput = {
   replyToId?: string
   quotePostId?: string
   replyControl?: ReplyControl
+  waitForPublish?: boolean
+  publishPollIntervalMs?: number
+  publishTimeoutMs?: number
 }
 
 export type CreatePostResult = {
   id: string
   creationId: string
   mediaType: CreatePostMediaType
+  containerStatus?: string
 }
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif']

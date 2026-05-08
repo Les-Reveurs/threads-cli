@@ -195,3 +195,54 @@ test('createPost creates carousel container from multiple image urls', async () 
     assert.match(calls[3]?.url || '', /text=carousel\+time/)
   })
 })
+
+test('createPost waits for video container readiness before publish', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const calls: Array<{ url: string, method: string }> = []
+    global.fetch = async (input, init) => {
+      calls.push({ url: String(input), method: init?.method || 'GET' })
+
+      if (calls.length === 1) return new Response(JSON.stringify({ id: 'user-1', username: 'bender' }), { status: 200 }) as typeof fetch
+      if (calls.length === 2) return new Response(JSON.stringify({ id: 'creation-video-1' }), { status: 200 }) as typeof fetch
+      if (calls.length === 3) return new Response(JSON.stringify({ status_code: 'IN_PROGRESS' }), { status: 200 }) as typeof fetch
+      if (calls.length === 4) return new Response(JSON.stringify({ status_code: 'FINISHED' }), { status: 200 }) as typeof fetch
+      return new Response(JSON.stringify({ id: 'post-video-1' }), { status: 200 }) as typeof fetch
+    }
+
+    const result = await createPost(new ThreadsApiAdapter(new FileConfigStore()), {
+      text: 'video time',
+      mediaUrl: 'https://cdn.example.test/video.mp4',
+      publishPollIntervalMs: 0,
+      publishTimeoutMs: 100,
+    })
+
+    assert.equal(result.id, 'post-video-1')
+    assert.equal(result.mediaType, 'VIDEO')
+    assert.equal(result.containerStatus, 'FINISHED')
+    assert.match(calls[2]?.url || '', /creation-video-1\?fields=status%2Cstatus_code%2Cerror_message&access_token=token-abc/)
+    assert.match(calls[4]?.url || '', /threads_publish\?creation_id=creation-video-1&access_token=token-abc/)
+  })
+})
+
+test('createPost fails when video container processing errors', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    let calls = 0
+    global.fetch = async (_input, _init) => {
+      calls += 1
+      if (calls === 1) return new Response(JSON.stringify({ id: 'user-1', username: 'bender' }), { status: 200 }) as typeof fetch
+      if (calls === 2) return new Response(JSON.stringify({ id: 'creation-video-2' }), { status: 200 }) as typeof fetch
+      return new Response(JSON.stringify({ status_code: 'ERROR', error_message: 'transcode failed' }), { status: 200 }) as typeof fetch
+    }
+
+    await assert.rejects(() => createPost(new ThreadsApiAdapter(new FileConfigStore()), {
+      text: 'video fail',
+      mediaUrl: 'https://cdn.example.test/video.mp4',
+      publishPollIntervalMs: 0,
+      publishTimeoutMs: 100,
+    }), /transcode failed/)
+  })
+})

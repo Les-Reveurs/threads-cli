@@ -138,6 +138,8 @@ test('post create supports media quote reply flags', async () => {
       '--quote', 'post-quote-1',
       '--reply-to', 'post-parent-1',
       '--reply-control', 'accounts_you_follow',
+      '--publish-poll-ms', '0',
+      '--publish-timeout-ms', '100',
     ], {
       cwd: repoRoot,
       env: {
@@ -146,6 +148,7 @@ test('post create supports media quote reply flags', async () => {
         THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
           { id: 'user-1', username: 'bender' },
           { id: 'creation-2' },
+          { status_code: 'FINISHED' },
           { id: 'post-100' },
         ]),
       },
@@ -222,6 +225,42 @@ test('post create supports carousel posts with repeated --media-url flags', asyn
       id: 'post-102',
       creationId: 'creation-4',
       mediaType: 'CAROUSEL',
+    })
+  })
+})
+
+test('post create waits for video readiness by default', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', [
+      '--import', 'tsx', 'src/cli.ts', 'post', 'create', '--json',
+      '--text', 'video time',
+      '--media-url', 'https://cdn.example.test/video.mp4',
+      '--publish-poll-ms', '0',
+      '--publish-timeout-ms', '100',
+    ], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { id: 'user-1', username: 'bender' },
+          { id: 'creation-video-1' },
+          { status_code: 'IN_PROGRESS' },
+          { status_code: 'FINISHED' },
+          { id: 'post-video-1' },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.deepEqual(JSON.parse(result.stdout), {
+      id: 'post-video-1',
+      creationId: 'creation-video-1',
+      mediaType: 'VIDEO',
+      containerStatus: 'FINISHED',
     })
   })
 })

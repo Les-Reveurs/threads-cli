@@ -37,6 +37,7 @@ threads post create --text "look at this" --media-url https://cdn.example.test/p
 threads post create --text "replying" --reply-to <post-id>
 threads post create --text "quoting" --quote <post-id>
 threads post create --text "carousel" --media-url https://cdn.example.test/1.png --media-url https://cdn.example.test/2.jpg
+threads post create --text "video" --media-url https://cdn.example.test/clip.mp4 --publish-poll-ms 2000 --publish-timeout-ms 120000
 threads post delete <id>
 threads posts list
 threads user <username-or-id>
@@ -83,6 +84,7 @@ Current implemented pieces:
 - `threads posts list`
 - `threads post delete <id>`
 - `threads post create` for text, image, video, carousel, quote, and reply posts via the official publish flow
+- video posts poll container readiness before publish by default
 - `threads doctor`
 - `--json` output for the current stable command surface
 - GitHub Actions CI for `typecheck`, `test`, and `build`
