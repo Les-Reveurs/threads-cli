@@ -97,5 +97,6 @@ Current implemented pieces:
 - `threads mentions list`
 - `threads insights post <id>`
 - `threads insights user`
+- human-readable rendering for breakdown insight payloads
 - `--json` output for the current stable command surface
 - GitHub Actions CI for `typecheck`, `test`, and `build`

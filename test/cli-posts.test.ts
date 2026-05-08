@@ -387,3 +387,43 @@ test('insights user supports json output and flags', async () => {
     })
   })
 })
+
+
+test('insights user renders breakdown metrics in readable form', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'user', '--metric', 'followers_count'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          {
+            data: [{
+              name: 'followers_count',
+              period: 'lifetime',
+              total_value: {
+                value: 9000,
+                breakdowns: [{
+                  dimension_keys: ['country'],
+                  results: [
+                    { dimension_values: ['US'], value: 5000 },
+                    { dimension_values: ['RS'], value: 4000 },
+                  ],
+                }],
+              },
+            }],
+          },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /breakdowns:/)
+    assert.match(result.stdout, /dimensions: country/)
+    assert.match(result.stdout, /US: 5000/)
+    assert.match(result.stdout, /RS: 4000/)
+  })
+})
