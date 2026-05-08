@@ -452,7 +452,7 @@ test('normalizeInsightsResult tolerates malformed records', async () => {
 })
 
 
-test('buildInsightSummary returns summary for views metric', async () => {
+test('buildInsightSummary returns structured summary for views metric', async () => {
   const { buildInsightSummary } = await import('../src/presentation/text/insight-summary.js')
 
   const summary = buildInsightSummary({
@@ -460,17 +460,17 @@ test('buildInsightSummary returns summary for views metric', async () => {
     values: [{ value: 42 }],
   })
 
-  assert.deepEqual(summary, ['summary: 42 views'])
+  assert.deepEqual(summary, { summary: '42 views' })
 })
 
-test('buildInsightSummary returns summary for likes and replies metrics', async () => {
+test('buildInsightSummary returns structured summary for likes and replies metrics', async () => {
   const { buildInsightSummary } = await import('../src/presentation/text/insight-summary.js')
 
-  assert.deepEqual(buildInsightSummary({ name: 'likes', values: [{ value: 12 }] }), ['summary: 12 likes'])
-  assert.deepEqual(buildInsightSummary({ name: 'replies', values: [{ value: 7 }] }), ['summary: 7 replies'])
+  assert.deepEqual(buildInsightSummary({ name: 'likes', values: [{ value: 12 }] }), { summary: '12 likes' })
+  assert.deepEqual(buildInsightSummary({ name: 'replies', values: [{ value: 7 }] }), { summary: '7 replies' })
 })
 
-test('buildInsightSummary returns follower summary with top breakdown', async () => {
+test('buildInsightSummary returns structured follower summary with top breakdown', async () => {
   const { buildInsightSummary } = await import('../src/presentation/text/insight-summary.js')
 
   const summary = buildInsightSummary({
@@ -487,16 +487,21 @@ test('buildInsightSummary returns follower summary with top breakdown', async ()
     },
   })
 
-  assert.deepEqual(summary, [
-    'summary: 9000 followers',
-    'top_breakdown: US = 5000',
-  ])
+  assert.deepEqual(summary, {
+    summary: '9000 followers',
+    topBreakdown: 'US = 5000',
+  })
 })
 
-
-test('buildInsightSummary returns summary for reposts and quotes metrics', async () => {
+test('buildInsightSummary returns structured summary for reposts and quotes metrics', async () => {
   const { buildInsightSummary } = await import('../src/presentation/text/insight-summary.js')
 
-  assert.deepEqual(buildInsightSummary({ name: 'reposts', values: [{ value: 3 }] }), ['summary: 3 reposts'])
-  assert.deepEqual(buildInsightSummary({ name: 'quotes', values: [{ value: 5 }] }), ['summary: 5 quotes'])
+  assert.deepEqual(buildInsightSummary({ name: 'reposts', values: [{ value: 3 }] }), { summary: '3 reposts' })
+  assert.deepEqual(buildInsightSummary({ name: 'quotes', values: [{ value: 5 }] }), { summary: '5 quotes' })
+})
+
+test('buildInsightSummary returns null for unsupported metrics', async () => {
+  const { buildInsightSummary } = await import('../src/presentation/text/insight-summary.js')
+
+  assert.equal(buildInsightSummary({ name: 'clicks', values: [{ value: 1 }] }), null)
 })

@@ -38,6 +38,16 @@ const renderValues = (insight: ThreadsInsight): string => {
   return values.length ? stringifyValue(values) : '-'
 }
 
+const renderSummary = (insight: ThreadsInsight): string[] => {
+  const summary = buildInsightSummary(insight)
+  if (!summary) return []
+
+  return [
+    `  summary: ${summary.summary}`,
+    ...(summary.topBreakdown ? [`  top_breakdown: ${summary.topBreakdown}`] : []),
+  ]
+}
+
 const renderInsightLine = (insight: ThreadsInsight): string => [
   `- metric: ${insight.name}`,
   `  period: ${insight.period ?? '-'}`,
@@ -46,7 +56,7 @@ const renderInsightLine = (insight: ThreadsInsight): string => [
   `  value: ${stringifyValue(insightPrimaryValue(insight))}`,
   `  total_value: ${stringifyValue(insight.total_value?.value)}`,
   `  values: ${renderValues(insight)}`,
-  ...buildInsightSummary(insight).map((line) => `  ${line}`),
+  ...renderSummary(insight),
   ...renderBreakdowns(insight),
 ].join('\n')
 

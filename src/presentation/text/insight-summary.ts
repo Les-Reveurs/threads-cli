@@ -1,28 +1,33 @@
 import { normalizeInsightBreakdowns, type ThreadsInsight } from '../../domain/insights/insight.js'
 
+export type ThreadsInsightSummary = {
+  summary: string
+  topBreakdown?: string
+}
+
 const insightPrimaryValue = (insight: ThreadsInsight): unknown => insight.total_value?.value ?? insight.values?.[0]?.value
 
-export const buildInsightSummary = (insight: ThreadsInsight): string[] => {
+export const buildInsightSummary = (insight: ThreadsInsight): ThreadsInsightSummary | null => {
   const value = insightPrimaryValue(insight)
 
   if (insight.name === 'views' && typeof value === 'number') {
-    return [`summary: ${value} views`]
+    return { summary: `${value} views` }
   }
 
   if (insight.name === 'likes' && typeof value === 'number') {
-    return [`summary: ${value} likes`]
+    return { summary: `${value} likes` }
   }
 
   if (insight.name === 'replies' && typeof value === 'number') {
-    return [`summary: ${value} replies`]
+    return { summary: `${value} replies` }
   }
 
   if (insight.name === 'reposts' && typeof value === 'number') {
-    return [`summary: ${value} reposts`]
+    return { summary: `${value} reposts` }
   }
 
   if (insight.name === 'quotes' && typeof value === 'number') {
-    return [`summary: ${value} quotes`]
+    return { summary: `${value} quotes` }
   }
 
   if (insight.name === 'followers_count' && typeof value === 'number') {
@@ -31,11 +36,11 @@ export const buildInsightSummary = (insight: ThreadsInsight): string[] => {
       .filter((entry) => typeof entry.value === 'number')
       .sort((left, right) => Number(right.value) - Number(left.value))[0]
 
-    return [
-      `summary: ${value} followers`,
-      `top_breakdown: ${top ? `${top.dimensionValues.join(', ') || '-'} = ${top.value}` : '-'}`,
-    ]
+    return {
+      summary: `${value} followers`,
+      topBreakdown: top ? `${top.dimensionValues.join(', ') || '-'} = ${top.value}` : '-',
+    }
   }
 
-  return []
+  return null
 }
