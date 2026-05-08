@@ -17,7 +17,7 @@ import { getPostInsights } from '../use-cases/insights/get-post-insights.js'
 import { getUserInsights } from '../use-cases/insights/get-user-insights.js'
 import { hideReply, unhideReply } from '../use-cases/replies/manage-reply.js'
 import { listReplies } from '../use-cases/replies/list-replies.js'
-import { renderAuthExchange, renderAuthImport, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderInsights, renderMentionsList, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile, renderRepliesList, renderReplyManaged } from '../../presentation/index.js'
+import { renderAuthExchange, renderAuthImport, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderInsights, renderMentionsList, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile, renderRepliesList, renderReplyManaged, serializeInsightsResult } from '../../presentation/index.js'
 import { CliError } from '../../shared/errors/cli-error.js'
 import { DEFAULT_POST_INSIGHT_METRICS, DEFAULT_USER_INSIGHT_METRICS, isSupportedPostInsightMetric, isSupportedUserInsightMetric } from '../../domain/insights/insight.js'
 
@@ -224,14 +224,22 @@ export const runCommand = async ({ store, api, oauth, args }: RuntimeDeps): Prom
 
     if (args[0] === 'insights' && args[1] === 'post' && args[2]) {
       const insights = await getPostInsights(api, args[2], validateInsightMetrics('post', getMetricFlags(args)))
-      printOutput(args, insights, (value) => renderInsights(`insights post ${args[2]}`, value))
+      if (hasFlag(args, '--json')) {
+        console.log(JSON.stringify(serializeInsightsResult(insights), null, 2))
+      } else {
+        console.log(renderInsights(`insights post ${args[2]}`, insights))
+      }
       process.exitCode = 0
       return true
     }
 
     if (args[0] === 'insights' && args[1] === 'user') {
       const insights = await getUserInsights(api, validateInsightMetrics('user', getMetricFlags(args)), getFlagValue(args, '--breakdown'))
-      printOutput(args, insights, (value) => renderInsights('insights user', value))
+      if (hasFlag(args, '--json')) {
+        console.log(JSON.stringify(serializeInsightsResult(insights), null, 2))
+      } else {
+        console.log(renderInsights('insights user', insights))
+      }
       process.exitCode = 0
       return true
     }
