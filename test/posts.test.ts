@@ -342,3 +342,47 @@ test('getUserInsights calls account insights endpoint with breakdown', async () 
   })
 })
 
+
+test('normalizeInsightBreakdowns shapes known breakdown payloads', async () => {
+  const { normalizeInsightBreakdowns } = await import('../src/domain/insights/insight.js')
+
+  const result = normalizeInsightBreakdowns([
+    {
+      dimension_keys: ['country', 'gender'],
+      results: [
+        { dimension_values: ['US', 'male'], value: 10 },
+        { dimension_values: ['RS', 'female'], value: 20 },
+      ],
+    },
+  ])
+
+  assert.deepEqual(result, [
+    {
+      dimensionKeys: ['country', 'gender'],
+      results: [
+        { dimensionValues: ['US', 'male'], value: 10 },
+        { dimensionValues: ['RS', 'female'], value: 20 },
+      ],
+    },
+  ])
+})
+
+test('normalizeInsightBreakdowns tolerates malformed payloads', async () => {
+  const { normalizeInsightBreakdowns } = await import('../src/domain/insights/insight.js')
+
+  const result = normalizeInsightBreakdowns([{ dimension_keys: 'country', results: [null, { value: 7 }] }, null])
+
+  assert.deepEqual(result, [
+    {
+      dimensionKeys: [],
+      results: [
+        { dimensionValues: [], value: undefined },
+        { dimensionValues: [], value: 7 },
+      ],
+    },
+    {
+      dimensionKeys: [],
+      results: [],
+    },
+  ])
+})

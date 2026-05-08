@@ -1,5 +1,5 @@
 import pc from 'picocolors'
-import type { ThreadsInsight, ThreadsInsightsResult } from '../../domain/insights/insight.js'
+import { normalizeInsightBreakdowns, type ThreadsInsight, type ThreadsInsightsResult } from '../../domain/insights/insight.js'
 
 const stringifyValue = (value: unknown): string => {
   if (value === undefined) return '-'
@@ -8,46 +8,19 @@ const stringifyValue = (value: unknown): string => {
   return JSON.stringify(value)
 }
 
-const asRecord = (value: unknown): Record<string, unknown> | undefined => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
-  return value as Record<string, unknown>
-}
-
-const renderBreakdowns = (breakdowns: unknown): string[] => {
-  if (!Array.isArray(breakdowns) || breakdowns.length === 0) return ['  breakdowns: -']
+const renderBreakdowns = (insight: ThreadsInsight): string[] => {
+  const breakdowns = normalizeInsightBreakdowns(insight.total_value?.breakdowns)
+  if (breakdowns.length === 0) return ['  breakdowns: -']
 
   const lines = ['  breakdowns:']
 
   for (const breakdown of breakdowns) {
-    const item = asRecord(breakdown)
-    if (!item) {
-      lines.push(`    - ${stringifyValue(breakdown)}`)
-      continue
-    }
+    lines.push(`    - dimensions: ${breakdown.dimensionKeys.join(', ') || '-'}`)
 
-    const dimensionKeys = Array.isArray(item.dimension_keys)
-      ? item.dimension_keys.map((value) => String(value))
-      : []
-    const results = Array.isArray(item.results) ? item.results : []
+    if (breakdown.results.length === 0) continue
 
-    if (results.length === 0) {
-      lines.push(`    - dimensions: ${dimensionKeys.join(', ') || '-'}`)
-      continue
-    }
-
-    lines.push(`    - dimensions: ${dimensionKeys.join(', ') || '-'}`)
-
-    for (const result of results) {
-      const resultRecord = asRecord(result)
-      if (!resultRecord) {
-        lines.push(`      value: ${stringifyValue(result)}`)
-        continue
-      }
-
-      const dimensionValues = Array.isArray(resultRecord.dimension_values)
-        ? resultRecord.dimension_values.map((value) => String(value)).join(', ')
-        : '-'
-      lines.push(`      - ${dimensionValues}: ${stringifyValue(resultRecord.value)}`)
+    for (const result of breakdown.results) {
+      lines.push(`      - ${result.dimensionValues.join(', ') || '-'}: ${stringifyValue(result.value)}`)
     }
   }
 
@@ -70,7 +43,7 @@ const renderInsightLine = (insight: ThreadsInsight): string => [
   `  value: ${stringifyValue(insight.total_value?.value ?? insight.values?.[0]?.value)}`,
   `  total_value: ${stringifyValue(insight.total_value?.value)}`,
   `  values: ${renderValues(insight)}`,
-  ...renderBreakdowns(insight.total_value?.breakdowns),
+  ...renderBreakdowns(insight),
 ].join('\n')
 
 export const renderInsights = (label: string, result: ThreadsInsightsResult): string => [
