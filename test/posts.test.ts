@@ -376,7 +376,7 @@ test('normalizeInsightBreakdowns tolerates malformed payloads', async () => {
     {
       dimensionKeys: [],
       results: [
-        { dimensionValues: [], value: undefined },
+        { dimensionValues: [] },
         { dimensionValues: [], value: 7 },
       ],
     },
@@ -385,4 +385,68 @@ test('normalizeInsightBreakdowns tolerates malformed payloads', async () => {
       results: [],
     },
   ])
+})
+
+
+test('normalizeInsightsResult shapes full insight records', async () => {
+  const { normalizeInsightsResult } = await import('../src/domain/insights/insight.js')
+
+  const result = normalizeInsightsResult({
+    data: [{
+      name: 'followers_count',
+      period: 'day',
+      title: 'Followers',
+      description: 'Daily followers',
+      id: 'insight-1',
+      values: [{ value: 10, end_time: '2026-05-08T00:00:00Z' }],
+      total_value: {
+        value: 99,
+        breakdowns: [{
+          dimension_keys: ['country'],
+          results: [{ dimension_values: ['US'], value: 70 }],
+        }],
+      },
+    }],
+    paging: { next: 'cursor-2' },
+  })
+
+  assert.deepEqual(result, {
+    data: [{
+      name: 'followers_count',
+      period: 'day',
+      title: 'Followers',
+      description: 'Daily followers',
+      id: 'insight-1',
+      values: [{ value: 10, end_time: '2026-05-08T00:00:00Z' }],
+      total_value: {
+        value: 99,
+        breakdowns: [{
+          dimensionKeys: ['country'],
+          results: [{ dimensionValues: ['US'], value: 70 }],
+        }],
+      },
+    }],
+    paging: { next: 'cursor-2' },
+  })
+})
+
+
+test('normalizeInsightsResult tolerates malformed records', async () => {
+  const { normalizeInsightsResult } = await import('../src/domain/insights/insight.js')
+
+  const result = normalizeInsightsResult({
+    data: [null, { name: 42, values: [{ end_time: 7 }, null], total_value: { breakdowns: 'wat' } }],
+  })
+
+  assert.deepEqual(result, {
+    data: [
+      {
+        name: 'unknown',
+      },
+      {
+        name: '42',
+        values: [{ end_time: '7' }, {}],
+      },
+    ],
+  })
 })

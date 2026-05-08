@@ -2,7 +2,7 @@ import type { ThreadsApiPort } from '../../app/ports/threads-api.port.js'
 import type { ConfigStorePort } from '../../app/ports/config-store.port.js'
 import { normalizeCreatePostInput, type CreatePostInput, type CreatePostResult } from '../../domain/posts/create-post.js'
 import { DEFAULT_MENTION_FIELDS, type ThreadsMentionsListResult } from '../../domain/mentions/mention.js'
-import { DEFAULT_POST_INSIGHT_METRICS, DEFAULT_USER_INSIGHT_METRICS, type ThreadsInsightsResult } from '../../domain/insights/insight.js'
+import { DEFAULT_POST_INSIGHT_METRICS, DEFAULT_USER_INSIGHT_METRICS, normalizeInsightsResult, type ThreadsInsightsResult } from '../../domain/insights/insight.js'
 import { DEFAULT_POST_FIELDS, type ThreadsPostsListResult } from '../../domain/posts/post.js'
 import { DEFAULT_PROFILE_FIELDS, type ThreadsProfile } from '../../domain/profiles/profile.js'
 import { DEFAULT_REPLY_FIELDS, type ManageReplyResult, type ThreadsRepliesListResult } from '../../domain/replies/reply.js'
@@ -124,16 +124,18 @@ export class ThreadsApiAdapter implements ThreadsApiPort {
   }
 
   async getPostInsights(postId: string, metrics: string[] = DEFAULT_POST_INSIGHT_METRICS): Promise<ThreadsInsightsResult> {
-    return this.fetchThreadsApi<ThreadsInsightsResult>(`${postId}/insights`, {
+    const result = await this.fetchThreadsApi<ThreadsInsightsResult>(`${postId}/insights`, {
       metric: metrics.join(','),
     })
+    return normalizeInsightsResult(result)
   }
 
   async getUserInsights(metrics: string[] = DEFAULT_USER_INSIGHT_METRICS, breakdown?: string): Promise<ThreadsInsightsResult> {
-    return this.fetchThreadsApi<ThreadsInsightsResult>('me/threads_insights', {
+    const result = await this.fetchThreadsApi<ThreadsInsightsResult>('me/threads_insights', {
       metric: metrics.join(','),
       breakdown,
     })
+    return normalizeInsightsResult(result)
   }
 
   async manageReply(replyId: string, hidden: boolean): Promise<ManageReplyResult> {
