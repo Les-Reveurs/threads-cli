@@ -45,7 +45,8 @@ threads replies hide <reply-id>
 threads replies unhide <reply-id>
 threads mentions list
 threads insights post <post-id>
-threads insights user
+threads insights post <post-id> --metric views,likes
+threads insights user --metric followers_count --breakdown country
 threads user <username-or-id>
 threads doctor
 ```
@@ -97,6 +98,7 @@ Current implemented pieces:
 - `threads mentions list`
 - `threads insights post <id>`
 - `threads insights user`
+- insight metric validation with clearer CLI errors/examples
 - human-readable rendering for breakdown insight payloads
 - `--json` output for the current stable command surface
 - GitHub Actions CI for `typecheck`, `test`, and `build`

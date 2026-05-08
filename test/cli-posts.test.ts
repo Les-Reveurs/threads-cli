@@ -427,3 +427,46 @@ test('insights user renders breakdown metrics in readable form', async () => {
     assert.match(result.stdout, /RS: 4000/)
   })
 })
+
+test('insights post rejects unsupported metrics', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'post', 'post-7', '--metric', 'views,followers_count'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /unsupported post insight metric\(s\): followers_count/)
+    assert.match(result.stderr, /allowed: views, likes, replies, reposts, quotes, shares/)
+  })
+})
+
+test('insights user rejects unsupported metrics in --json mode', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'user', '--metric', 'shares', '--json'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 1)
+    assert.deepEqual(JSON.parse(result.stderr), {
+      ok: false,
+      error: {
+        code: 'invalid_insight_metric',
+        message: 'unsupported user insight metric(s): shares. allowed: views, likes, replies, reposts, quotes, clicks, followers_count',
+      },
+    })
+  })
+})

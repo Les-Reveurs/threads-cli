@@ -139,14 +139,14 @@ Possible flags:
 Returns official insight metrics for a single post.
 
 Possible flags:
-- `--metric <name[,name...]>` (repeatable)
+- `--metric <name[,name...]>` (repeatable; allowed: `views`, `likes`, `replies`, `reposts`, `quotes`, `shares`)
 - `--json`
 
 ### `threads insights user`
 Returns official account insight metrics for the authenticated user.
 
 Possible flags:
-- `--metric <name[,name...]>` (repeatable)
+- `--metric <name[,name...]>` (repeatable; allowed: `views`, `likes`, `replies`, `reposts`, `quotes`, `clicks`, `followers_count`)
 - `--breakdown <dimension>`
 - `--json`
 

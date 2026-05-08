@@ -19,6 +19,7 @@ import { hideReply, unhideReply } from '../use-cases/replies/manage-reply.js'
 import { listReplies } from '../use-cases/replies/list-replies.js'
 import { renderAuthExchange, renderAuthImport, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderInsights, renderMentionsList, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile, renderRepliesList, renderReplyManaged } from '../../presentation/index.js'
 import { CliError } from '../../shared/errors/cli-error.js'
+import { DEFAULT_POST_INSIGHT_METRICS, DEFAULT_USER_INSIGHT_METRICS, isSupportedPostInsightMetric, isSupportedUserInsightMetric } from '../../domain/insights/insight.js'
 
 export type RuntimeDeps = {
   store: ConfigStorePort
@@ -48,6 +49,20 @@ const getFlagValues = (args: string[], name: string): string[] => {
     }
   }
   return values
+}
+
+const validateInsightMetrics = (kind: 'post' | 'user', metrics?: string[]): string[] | undefined => {
+  if (!metrics || metrics.length === 0) return undefined
+
+  const unique = [...new Set(metrics)]
+  const invalid = unique.filter((metric) => kind === 'post' ? !isSupportedPostInsightMetric(metric) : !isSupportedUserInsightMetric(metric))
+
+  if (invalid.length > 0) {
+    const allowed = kind === 'post' ? DEFAULT_POST_INSIGHT_METRICS : DEFAULT_USER_INSIGHT_METRICS
+    throw new CliError('invalid_insight_metric', `unsupported ${kind} insight metric(s): ${invalid.join(', ')}. allowed: ${allowed.join(', ')}`)
+  }
+
+  return unique
 }
 
 const hasFlag = (args: string[], name: string): boolean => args.includes(name)
@@ -208,14 +223,14 @@ export const runCommand = async ({ store, api, oauth, args }: RuntimeDeps): Prom
     }
 
     if (args[0] === 'insights' && args[1] === 'post' && args[2]) {
-      const insights = await getPostInsights(api, args[2], getMetricFlags(args))
+      const insights = await getPostInsights(api, args[2], validateInsightMetrics('post', getMetricFlags(args)))
       printOutput(args, insights, (value) => renderInsights(`insights post ${args[2]}`, value))
       process.exitCode = 0
       return true
     }
 
     if (args[0] === 'insights' && args[1] === 'user') {
-      const insights = await getUserInsights(api, getMetricFlags(args), getFlagValue(args, '--breakdown'))
+      const insights = await getUserInsights(api, validateInsightMetrics('user', getMetricFlags(args)), getFlagValue(args, '--breakdown'))
       printOutput(args, insights, (value) => renderInsights('insights user', value))
       process.exitCode = 0
       return true
