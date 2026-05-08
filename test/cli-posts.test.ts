@@ -341,3 +341,49 @@ test('post create waits for video readiness by default', async () => {
     })
   })
 })
+
+test('insights post renders fetched metrics', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'post', 'post-7'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ name: 'views', period: 'lifetime', values: [{ value: 42 }] }] },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /insights post post-7: 1 metric\(s\)/)
+    assert.match(result.stdout, /metric: views/)
+    assert.match(result.stdout, /value: 42/)
+  })
+})
+
+test('insights user supports json output and flags', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'user', '--metric', 'views,followers_count', '--breakdown', 'country', '--json'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ name: 'followers_count', period: 'day', total_value: { value: 9000 } }] },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.deepEqual(JSON.parse(result.stdout), {
+      data: [{ name: 'followers_count', period: 'day', total_value: { value: 9000 } }],
+    })
+  })
+})

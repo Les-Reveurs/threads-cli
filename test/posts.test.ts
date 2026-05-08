@@ -4,6 +4,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 
+import { getPostInsights } from '../src/app/use-cases/insights/get-post-insights.js'
+import { getUserInsights } from '../src/app/use-cases/insights/get-user-insights.js'
 import { listMentions } from '../src/app/use-cases/mentions/list-mentions.js'
 import { createPost } from '../src/app/use-cases/posts/create-post.js'
 import { deletePost } from '../src/app/use-cases/posts/delete-post.js'
@@ -305,3 +307,38 @@ test('createPost fails when video container processing errors', async () => {
     }), /transcode failed/)
   })
 })
+
+test('getPostInsights calls post insights endpoint with metrics', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    let seenUrl = ''
+    global.fetch = async (input) => {
+      seenUrl = String(input)
+      return new Response(JSON.stringify({ data: [{ name: 'views', values: [{ value: 42 }] }] }), { status: 200 }) as typeof fetch
+    }
+
+    const result = await getPostInsights(new ThreadsApiAdapter(new FileConfigStore()), 'post-9', ['views', 'likes'])
+
+    assert.equal(result.data[0]?.name, 'views')
+    assert.match(seenUrl, /\/post-9\/insights\?metric=views%2Clikes&access_token=token-abc/)
+  })
+})
+
+test('getUserInsights calls account insights endpoint with breakdown', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    let seenUrl = ''
+    global.fetch = async (input) => {
+      seenUrl = String(input)
+      return new Response(JSON.stringify({ data: [{ name: 'followers_count', total_value: { value: 9000 } }] }), { status: 200 }) as typeof fetch
+    }
+
+    const result = await getUserInsights(new ThreadsApiAdapter(new FileConfigStore()), ['followers_count'], 'country')
+
+    assert.equal(result.data[0]?.name, 'followers_count')
+    assert.match(seenUrl, /\/me\/threads_insights\?metric=followers_count&breakdown=country&access_token=token-abc/)
+  })
+})
+

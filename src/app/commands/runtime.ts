@@ -13,9 +13,11 @@ import { listPosts } from '../use-cases/posts/list-posts.js'
 import { createPost } from '../use-cases/posts/create-post.js'
 import { deletePost } from '../use-cases/posts/delete-post.js'
 import { listMentions } from '../use-cases/mentions/list-mentions.js'
+import { getPostInsights } from '../use-cases/insights/get-post-insights.js'
+import { getUserInsights } from '../use-cases/insights/get-user-insights.js'
 import { hideReply, unhideReply } from '../use-cases/replies/manage-reply.js'
 import { listReplies } from '../use-cases/replies/list-replies.js'
-import { renderAuthExchange, renderAuthImport, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderMentionsList, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile, renderRepliesList, renderReplyManaged } from '../../presentation/index.js'
+import { renderAuthExchange, renderAuthImport, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderInsights, renderMentionsList, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile, renderRepliesList, renderReplyManaged } from '../../presentation/index.js'
 import { CliError } from '../../shared/errors/cli-error.js'
 
 export type RuntimeDeps = {
@@ -29,6 +31,12 @@ const getFlagValue = (args: string[], name: string): string | undefined => {
   const index = args.indexOf(name)
   if (index === -1) return undefined
   return args[index + 1]?.startsWith('--') ? undefined : args[index + 1]
+}
+
+const splitCsvValues = (values: string[]): string[] => values.flatMap((value) => value.split(',').map((part) => part.trim()).filter(Boolean))
+const getMetricFlags = (args: string[]): string[] | undefined => {
+  const metrics = splitCsvValues(getFlagValues(args, '--metric'))
+  return metrics.length ? metrics : undefined
 }
 
 const getFlagValues = (args: string[], name: string): string[] => {
@@ -195,6 +203,20 @@ export const runCommand = async ({ store, api, oauth, args }: RuntimeDeps): Prom
     if (args[0] === 'mentions' && args[1] === 'list') {
       const mentions = await listMentions(api, getFlagValue(args, '--after'))
       printOutput(args, mentions, renderMentionsList)
+      process.exitCode = 0
+      return true
+    }
+
+    if (args[0] === 'insights' && args[1] === 'post' && args[2]) {
+      const insights = await getPostInsights(api, args[2], getMetricFlags(args))
+      printOutput(args, insights, (value) => renderInsights(`insights post ${args[2]}`, value))
+      process.exitCode = 0
+      return true
+    }
+
+    if (args[0] === 'insights' && args[1] === 'user') {
+      const insights = await getUserInsights(api, getMetricFlags(args), getFlagValue(args, '--breakdown'))
+      printOutput(args, insights, (value) => renderInsights('insights user', value))
       process.exitCode = 0
       return true
     }

@@ -21,6 +21,8 @@ cli.command('replies list <postId>', 'list replies for a Threads post')
 cli.command('replies hide <replyId>', 'hide a reply')
 cli.command('replies unhide <replyId>', 'unhide a reply')
 cli.command('mentions list', 'list mentions for the authenticated account')
+cli.command('insights post <id>', 'show insights for a Threads post')
+cli.command('insights user', 'show account insights for the authenticated user')
 cli.help()
 cli.version('0.1.0')
 

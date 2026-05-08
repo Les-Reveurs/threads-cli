@@ -25,6 +25,8 @@ threads
 ├── replies hide <reply-id>
 ├── replies unhide <reply-id>
 ├── mentions list
+├── insights post <id>
+├── insights user
 └── doctor
 ```
 
@@ -131,6 +133,21 @@ Lists mentions for the authenticated account.
 
 Possible flags:
 - `--after <cursor>`
+- `--json`
+
+### `threads insights post <id>`
+Returns official insight metrics for a single post.
+
+Possible flags:
+- `--metric <name[,name...]>` (repeatable)
+- `--json`
+
+### `threads insights user`
+Returns official account insight metrics for the authenticated user.
+
+Possible flags:
+- `--metric <name[,name...]>` (repeatable)
+- `--breakdown <dimension>`
 - `--json`
 
 ### `threads doctor`
