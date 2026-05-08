@@ -8,6 +8,8 @@ const stringifyValue = (value: unknown): string => {
   return JSON.stringify(value)
 }
 
+const insightPrimaryValue = (insight: ThreadsInsight): unknown => insight.total_value?.value ?? insight.values?.[0]?.value
+
 const renderBreakdowns = (insight: ThreadsInsight): string[] => {
   const breakdowns = normalizeInsightBreakdowns(insight.total_value?.breakdowns)
   if (breakdowns.length === 0) return ['  breakdowns: -']
@@ -35,14 +37,38 @@ const renderValues = (insight: ThreadsInsight): string => {
   return values.length ? stringifyValue(values) : '-'
 }
 
+const renderMetricSummary = (insight: ThreadsInsight): string[] => {
+  const value = insightPrimaryValue(insight)
+
+  if (insight.name === 'views' && typeof value === 'number') {
+    return [`  summary: ${value} views`]
+  }
+
+  if (insight.name === 'followers_count' && typeof value === 'number') {
+    const breakdowns = normalizeInsightBreakdowns(insight.total_value?.breakdowns)
+    const top = breakdowns
+      .flatMap((breakdown) => breakdown.results)
+      .filter((entry) => typeof entry.value === 'number')
+      .sort((left, right) => Number(right.value) - Number(left.value))[0]
+
+    return [
+      `  summary: ${value} followers`,
+      `  top_breakdown: ${top ? `${top.dimensionValues.join(', ') || '-'} = ${top.value}` : '-'}`,
+    ]
+  }
+
+  return []
+}
+
 const renderInsightLine = (insight: ThreadsInsight): string => [
   `- metric: ${insight.name}`,
   `  period: ${insight.period ?? '-'}`,
   `  title: ${insight.title ?? '-'}`,
   `  description: ${insight.description ?? '-'}`,
-  `  value: ${stringifyValue(insight.total_value?.value ?? insight.values?.[0]?.value)}`,
+  `  value: ${stringifyValue(insightPrimaryValue(insight))}`,
   `  total_value: ${stringifyValue(insight.total_value?.value)}`,
   `  values: ${renderValues(insight)}`,
+  ...renderMetricSummary(insight),
   ...renderBreakdowns(insight),
 ].join('\n')
 

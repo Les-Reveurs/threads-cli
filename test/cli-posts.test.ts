@@ -470,3 +470,61 @@ test('insights user rejects unsupported metrics in --json mode', async () => {
     })
   })
 })
+
+test('insights post renders views metric with friendly summary', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'post', 'post-7'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { data: [{ name: 'views', period: 'lifetime', title: 'Views', values: [{ value: 42 }] }] },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /summary: 42 views/)
+  })
+})
+
+test('insights user renders followers_count breakdown with friendly summary', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', ['--import', 'tsx', 'src/cli.ts', 'insights', 'user', '--metric', 'followers_count'], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          {
+            data: [{
+              name: 'followers_count',
+              period: 'lifetime',
+              total_value: {
+                value: 9000,
+                breakdowns: [{
+                  dimension_keys: ['country'],
+                  results: [
+                    { dimension_values: ['US'], value: 5000 },
+                    { dimension_values: ['RS'], value: 4000 },
+                  ],
+                }],
+              },
+            }],
+          },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /summary: 9000 followers/)
+    assert.match(result.stdout, /top_breakdown: US = 5000/)
+  })
+})
