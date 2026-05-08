@@ -33,6 +33,9 @@ threads auth import --access-token <token>
 threads auth status
 threads me
 threads post create --text "hello world"
+threads post create --text "look at this" --media-url https://cdn.example.test/pic.png --alt-text "robot portrait"
+threads post create --text "replying" --reply-to <post-id>
+threads post create --text "quoting" --quote <post-id>
 threads post delete <id>
 threads posts list
 threads user <username-or-id>
@@ -78,7 +81,7 @@ Current implemented pieces:
 - `threads user <username-or-id>`
 - `threads posts list`
 - `threads post delete <id>`
-- `threads post create --text ...` for text posts via the official publish flow
+- `threads post create` for text, image, video, quote, and reply posts via the official publish flow
 - `threads doctor`
 - `--json` output for the current stable command surface
 - GitHub Actions CI for `typecheck`, `test`, and `build`

@@ -123,5 +123,71 @@ test('post create prints success for text posts', async () => {
     assert.match(result.stdout, /post create: done/)
     assert.match(result.stdout, /id: post-99/)
     assert.match(result.stdout, /creation_id: creation-1/)
+    assert.match(result.stdout, /media_type: TEXT/)
+  })
+})
+
+test('post create supports media quote reply flags', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', [
+      '--import', 'tsx', 'src/cli.ts', 'post', 'create',
+      '--text', 'look at this',
+      '--media-url', 'https://cdn.example.test/video.mp4',
+      '--quote', 'post-quote-1',
+      '--reply-to', 'post-parent-1',
+      '--reply-control', 'accounts_you_follow',
+    ], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { id: 'user-1', username: 'bender' },
+          { id: 'creation-2' },
+          { id: 'post-100' },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.match(result.stdout, /post create: done/)
+    assert.match(result.stdout, /id: post-100/)
+    assert.match(result.stdout, /creation_id: creation-2/)
+    assert.match(result.stdout, /media_type: VIDEO/)
+  })
+})
+
+test('post create supports --json output for media posts', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const result = spawnSync('node', [
+      '--import', 'tsx', 'src/cli.ts', 'post', 'create', '--json',
+      '--text', 'hello',
+      '--media-url', 'https://cdn.example.test/pic.png',
+      '--alt-text', 'robot portrait',
+    ], {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        THREADS_CLI_CONFIG_DIR: configDir,
+        THREADS_CLI_FAKE_API_QUEUE_JSON: JSON.stringify([
+          { id: 'user-1', username: 'bender' },
+          { id: 'creation-3' },
+          { id: 'post-101' },
+        ]),
+      },
+      encoding: 'utf8',
+    })
+
+    assert.equal(result.status, 0)
+    assert.deepEqual(JSON.parse(result.stdout), {
+      id: 'post-101',
+      creationId: 'creation-3',
+      mediaType: 'IMAGE',
+    })
   })
 })

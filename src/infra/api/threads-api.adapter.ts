@@ -1,5 +1,6 @@
 import type { ThreadsApiPort } from '../../app/ports/threads-api.port.js'
 import type { ConfigStorePort } from '../../app/ports/config-store.port.js'
+import { normalizeCreatePostInput, type CreatePostInput, type CreatePostResult } from '../../domain/posts/create-post.js'
 import { DEFAULT_POST_FIELDS, type ThreadsPostsListResult } from '../../domain/posts/post.js'
 import { DEFAULT_PROFILE_FIELDS, type ThreadsProfile } from '../../domain/profiles/profile.js'
 import { API_BASE_URL } from './constants.js'
@@ -94,10 +95,23 @@ export class ThreadsApiAdapter implements ThreadsApiPort {
     return { id, deleted: true }
   }
 
-  async createTextPost(text: string): Promise<{ id: string, creationId: string }> {
+  async createPost(input: CreatePostInput): Promise<CreatePostResult> {
     const profile = await this.getCurrentProfile()
-    const creation = await this.mutateThreadsApi<{ id: string }>(`${profile.id}/threads`, { method: 'POST', query: { media_type: 'TEXT', text } })
+    const normalized = normalizeCreatePostInput(input)
+
+    const query: Record<string, string | undefined> = {
+      media_type: normalized.mediaType,
+      text: normalized.text,
+      image_url: normalized.mediaType === 'IMAGE' ? normalized.mediaUrl : undefined,
+      video_url: normalized.mediaType === 'VIDEO' ? normalized.mediaUrl : undefined,
+      alt_text: normalized.altText,
+      reply_to_id: normalized.replyToId,
+      quote_post_id: normalized.quotePostId,
+      reply_control: normalized.replyControl,
+    }
+
+    const creation = await this.mutateThreadsApi<{ id: string }>(`${profile.id}/threads`, { method: 'POST', query })
     const published = await this.mutateThreadsApi<{ id: string }>(`${profile.id}/threads_publish`, { method: 'POST', query: { creation_id: creation.id } })
-    return { id: published.id, creationId: creation.id }
+    return { id: published.id, creationId: creation.id, mediaType: normalized.mediaType }
   }
 }

@@ -10,7 +10,7 @@ import { getDoctorReport } from '../use-cases/doctor/get-doctor-report.js'
 import { getCurrentProfile } from '../use-cases/profiles/get-current-profile.js'
 import { getUserProfile } from '../use-cases/profiles/get-user-profile.js'
 import { listPosts } from '../use-cases/posts/list-posts.js'
-import { createTextPost } from '../use-cases/posts/create-post.js'
+import { createPost } from '../use-cases/posts/create-post.js'
 import { deletePost } from '../use-cases/posts/delete-post.js'
 import { renderAuthExchange, renderAuthImport, renderAuthLogin, renderAuthLogout, renderAuthStatus, renderDoctorReport, renderPostCreated, renderPostDeleted, renderPostsList, renderProfile } from '../../presentation/index.js'
 import { CliError } from '../../shared/errors/cli-error.js'
@@ -138,10 +138,17 @@ export const runCommand = async ({ store, api, oauth, args }: RuntimeDeps): Prom
     }
 
     if (args[0] === 'post' && args[1] === 'create') {
-      const text = getFlagValue(args, '--text') || args.slice(2).join(' ').trim()
-      if (!text) throw new Error('post text is required (pass [text] or --text)')
-      const created = await createTextPost(api, text)
-      printOutput(args, created, (value) => renderPostCreated(value.id, value.creationId))
+      const text = getFlagValue(args, '--text') || args.slice(2).join(' ').trim() || undefined
+      const created = await createPost(api, {
+        text,
+        mediaUrl: getFlagValue(args, '--media-url') || getFlagValue(args, '--media'),
+        mediaType: getFlagValue(args, '--media-type') as 'TEXT' | 'IMAGE' | 'VIDEO' | undefined,
+        altText: getFlagValue(args, '--alt-text'),
+        replyToId: getFlagValue(args, '--reply-to'),
+        quotePostId: getFlagValue(args, '--quote'),
+        replyControl: getFlagValue(args, '--reply-control') as 'everyone' | 'accounts_you_follow' | 'mentioned_only' | undefined,
+      })
+      printOutput(args, created, (value) => renderPostCreated(value.id, value.creationId, value.mediaType))
       process.exitCode = 0
       return true
     }

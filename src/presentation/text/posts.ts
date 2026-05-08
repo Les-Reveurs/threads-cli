@@ -16,4 +16,4 @@ export const renderPostsList = (result: ThreadsPostsListResult): string => [
 ].join('\n')
 
 export const renderPostDeleted = (id: string): string => [pc.green('post delete: done'), `id: ${id}`].join('\n')
-export const renderPostCreated = (id: string, creationId: string): string => [pc.green('post create: done'), `id: ${id}`, `creation_id: ${creationId}`].join('\n')
+export const renderPostCreated = (id: string, creationId: string, mediaType?: string): string => [pc.green('post create: done'), `id: ${id}`, `creation_id: ${creationId}`, `media_type: ${mediaType ?? '-'}`].join('\n')

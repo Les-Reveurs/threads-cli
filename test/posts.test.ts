@@ -4,7 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 
-import { createTextPost } from '../src/app/use-cases/posts/create-post.js'
+import { createPost } from '../src/app/use-cases/posts/create-post.js'
 import { deletePost } from '../src/app/use-cases/posts/delete-post.js'
 import { listPosts } from '../src/app/use-cases/posts/list-posts.js'
 import { FileConfigStore } from '../src/infra/config/file-config.store.js'
@@ -81,7 +81,7 @@ test('deletePost calls DELETE on the post id', async () => {
   })
 })
 
-test('createTextPost creates container then publishes it', async () => {
+test('createPost creates text container then publishes it', async () => {
   await withTempConfigDir(async (configDir) => {
     await writeReadyConfig(configDir)
 
@@ -100,13 +100,55 @@ test('createTextPost creates container then publishes it', async () => {
       return new Response(JSON.stringify({ id: 'post-99' }), { status: 200 }) as typeof fetch
     }
 
-    const result = await createTextPost(new ThreadsApiAdapter(new FileConfigStore()), 'hello threads')
+    const result = await createPost(new ThreadsApiAdapter(new FileConfigStore()), { text: 'hello threads' })
 
     assert.equal(result.creationId, 'creation-1')
     assert.equal(result.id, 'post-99')
+    assert.equal(result.mediaType, 'TEXT')
     assert.equal(calls[1]?.method, 'POST')
     assert.match(calls[1]?.url || '', /\/user-1\/threads\?media_type=TEXT&text=hello\+threads&access_token=token-abc/)
     assert.equal(calls[2]?.method, 'POST')
     assert.match(calls[2]?.url || '', /\/user-1\/threads_publish\?creation_id=creation-1&access_token=token-abc/)
+  })
+})
+
+test('createPost creates image quote reply container with metadata', async () => {
+  await withTempConfigDir(async (configDir) => {
+    await writeReadyConfig(configDir)
+
+    const calls: Array<{ url: string, method: string }> = []
+    global.fetch = async (input, init) => {
+      calls.push({ url: String(input), method: init?.method || 'GET' })
+
+      if (calls.length === 1) {
+        return new Response(JSON.stringify({ id: 'user-1', username: 'bender' }), { status: 200 }) as typeof fetch
+      }
+
+      if (calls.length === 2) {
+        return new Response(JSON.stringify({ id: 'creation-2' }), { status: 200 }) as typeof fetch
+      }
+
+      return new Response(JSON.stringify({ id: 'post-100' }), { status: 200 }) as typeof fetch
+    }
+
+    const result = await createPost(new ThreadsApiAdapter(new FileConfigStore()), {
+      text: 'look at this',
+      mediaUrl: 'https://cdn.example.test/pic.png',
+      altText: 'robot portrait',
+      quotePostId: 'post-quote-1',
+      replyToId: 'post-parent-1',
+      replyControl: 'mentioned_only',
+    })
+
+    assert.equal(result.creationId, 'creation-2')
+    assert.equal(result.id, 'post-100')
+    assert.equal(result.mediaType, 'IMAGE')
+    assert.equal(calls[1]?.method, 'POST')
+    assert.match(calls[1]?.url || '', /media_type=IMAGE/)
+    assert.match(calls[1]?.url || '', /image_url=https%3A%2F%2Fcdn\.example\.test%2Fpic\.png/)
+    assert.match(calls[1]?.url || '', /alt_text=robot\+portrait/)
+    assert.match(calls[1]?.url || '', /quote_post_id=post-quote-1/)
+    assert.match(calls[1]?.url || '', /reply_to_id=post-parent-1/)
+    assert.match(calls[1]?.url || '', /reply_control=mentioned_only/)
   })
 })

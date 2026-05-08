@@ -86,6 +86,12 @@ Creates a post through the official post creation flow.
 
 Possible flags:
 - `--text <text>`
+- `--media-url <url>`
+- `--media-type <TEXT|IMAGE|VIDEO>`
+- `--alt-text <text>`
+- `--reply-to <post-id>`
+- `--quote <post-id>`
+- `--reply-control <everyone|accounts_you_follow|mentioned_only>`
 - `--json`
 
 ### `threads post delete <id>`

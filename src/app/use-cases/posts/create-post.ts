@@ -1,5 +1,6 @@
+import type { CreatePostInput } from '../../../domain/posts/create-post.js'
 import type { ThreadsApiPort } from '../../ports/threads-api.port.js'
 
-export const createTextPost = async (api: ThreadsApiPort, text: string) => {
-  return api.createTextPost(text)
+export const createPost = async (api: ThreadsApiPort, input: CreatePostInput) => {
+  return api.createPost(input)
 }
