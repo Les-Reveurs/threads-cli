@@ -1,7 +1,7 @@
 import { cac } from 'cac'
 
 import { FileConfigStore } from './infra/config/file-config.store.js'
-import { ThreadsApiAdapter } from './infra/api/threads-api.adapter.js'
+import { HybridThreadsApiAdapter } from './infra/api/hybrid-threads-api.adapter.js'
 import { ThreadsOAuthAdapter } from './infra/oauth/threads-oauth.adapter.js'
 import { runCommand } from './app/commands/runtime.js'
 
@@ -11,6 +11,7 @@ cli.command('auth login', 'start OAuth login flow')
 cli.command('auth exchange', 'exchange OAuth code for an access token')
 cli.command('auth status', 'show local auth status')
 cli.command('auth import', 'store auth tokens/config for non-interactive CI or local automation')
+cli.command('auth login-unofficial', 'store credentials for the unofficial Threads login flow')
 cli.command('auth logout', 'clear locally stored auth data')
 cli.command('me', 'show current authenticated profile')
 cli.command('user <usernameOrId>', 'show public profile info')
@@ -28,7 +29,7 @@ cli.version('0.1.0')
 
 const args = process.argv.slice(2)
 const store = new FileConfigStore()
-const api = new ThreadsApiAdapter(store)
+const api = new HybridThreadsApiAdapter(store)
 const oauth = new ThreadsOAuthAdapter()
 
 if (!(await runCommand({ store, api, oauth, args }))) {

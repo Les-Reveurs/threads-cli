@@ -10,13 +10,23 @@ export const logoutAuth = async (store: ConfigStorePort): Promise<AuthLogoutResu
   const config = await store.loadConfig()
   const profileName = config.activeProfile || 'default'
   const currentProfile = config.profiles[profileName] || {}
-  const hadAnyAuth = Boolean(currentProfile.accessToken || currentProfile.refreshToken || currentProfile.accessTokenExpiresAt)
+  const hadAnyAuth = Boolean(
+    currentProfile.accessToken
+    || currentProfile.refreshToken
+    || currentProfile.accessTokenExpiresAt
+    || currentProfile.unofficialToken
+    || currentProfile.password
+    || currentProfile.userId,
+  )
 
   config.profiles[profileName] = {
     ...currentProfile,
     accessToken: undefined,
     refreshToken: undefined,
     accessTokenExpiresAt: undefined,
+    unofficialToken: undefined,
+    password: undefined,
+    userId: undefined,
   }
   await store.saveConfig(config)
 

@@ -4,6 +4,7 @@ import type { ThreadsOAuthPort } from '../ports/oauth.port.js'
 import { startAuthLogin } from '../use-cases/auth/login.js'
 import { completeAuthExchange } from '../use-cases/auth/exchange.js'
 import { importAuthToken } from '../use-cases/auth/import-token.js'
+import { loginUnofficial } from '../use-cases/auth/login-unofficial.js'
 import { logoutAuth } from '../use-cases/auth/logout.js'
 import { getAuthStatus } from '../use-cases/auth/status.js'
 import { getDoctorReport } from '../use-cases/doctor/get-doctor-report.js'
@@ -154,6 +155,26 @@ export const runCommand = async ({ store, api, oauth, args }: RuntimeDeps): Prom
         scopes: getFlagValue(args, '--scopes') ? [getFlagValue(args, '--scopes') as string] : undefined,
       })
       printOutput(args, result, renderAuthImport)
+      process.exitCode = 0
+      return true
+    }
+
+    if (args[0] === 'auth' && args[1] === 'login-unofficial') {
+      const result = await loginUnofficial(store, {
+        profile: getFlagValue(args, '--profile'),
+        username: getFlagValue(args, '--username'),
+        password: getFlagValue(args, '--password'),
+        deviceId: getFlagValue(args, '--device-id'),
+        token: getFlagValue(args, '--token'),
+        userId: getFlagValue(args, '--user-id'),
+      })
+      printOutput(args, result, () => [
+        'auth login-unofficial: ready',
+        `profile: ${result.profile}`,
+        `username: ${result.savedProfile.username ? 'set' : 'missing'}`,
+        `password: ${result.savedProfile.password ? 'set' : 'missing'}`,
+        `device_id: ${result.savedProfile.deviceId ?? '-'}`,
+      ].join('\n'))
       process.exitCode = 0
       return true
     }

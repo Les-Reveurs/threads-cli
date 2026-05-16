@@ -1,4 +1,7 @@
+export type ThreadsAuthProvider = 'official' | 'unofficial'
+
 export type ThreadsProfileConfig = {
+  authProvider?: ThreadsAuthProvider
   clientId?: string
   clientSecret?: string
   redirectUri?: string
@@ -7,6 +10,11 @@ export type ThreadsProfileConfig = {
   accessToken?: string
   accessTokenExpiresAt?: string
   refreshToken?: string
+  username?: string
+  password?: string
+  deviceId?: string
+  userId?: string
+  unofficialToken?: string
 }
 
 export type ThreadsCliConfig = {

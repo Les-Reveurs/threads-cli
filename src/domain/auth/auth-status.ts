@@ -19,8 +19,8 @@ const isExpired = (expiresAt?: string): boolean => {
 
 export const toAuthStatus = (profileName: string, profile?: ThreadsProfileConfig): AuthStatus => {
   const hasClientId = Boolean(profile?.clientId)
-  const hasAccessToken = Boolean(profile?.accessToken)
-  const expired = isExpired(profile?.accessTokenExpiresAt)
+  const hasAccessToken = Boolean(profile?.accessToken || profile?.unofficialToken)
+  const expired = profile?.authProvider === 'unofficial' ? false : isExpired(profile?.accessTokenExpiresAt)
 
   if (!hasAccessToken) {
     return {

@@ -30,6 +30,7 @@ Unofficial adapters can exist later as an optional experimental layer, not as th
 threads auth login
 threads auth exchange --code <authorization-code>
 threads auth import --access-token <token>
+threads auth login-unofficial --username <username> --password <password>
 threads auth status
 threads me
 threads post create --text "hello world"
@@ -84,6 +85,7 @@ Current implemented pieces:
 - `threads auth login` scaffold that persists profile OAuth inputs and prints an authorization URL/state
 - `threads auth exchange --code ...` to store an access token from the OAuth callback
 - `threads auth import --access-token ...` for CI/non-interactive setup
+- `threads auth login-unofficial --username ... --password ...` for the reverse-engineered login flow without a Meta app
 - `threads auth status`
 - `threads auth logout`
 - `threads me`
